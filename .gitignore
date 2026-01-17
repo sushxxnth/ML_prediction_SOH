@@ -1,0 +1,59 @@
+# Large data files - keep local only
+our_data/
+data/batterylife/
+data/new_datasets/
+data/calce/
+data/oxford/
+data/panasonic_18650pf/
+data/randomized_battery_usage/
+data/stanford_calendar/
+data/storage/
+data/storage_degradation/
+data/synthetic/
+data/tbsi_sunwoda/
+data/unified_cache/
+data/cache/
+data/batteryml_raw/
+data/nasa_set5/
+
+# Root-level zip files
+nasa_battery_set5.zip
+
+# Model checkpoints
+models/
+*.pt
+
+# Large pickle files
+*.pkl
+
+# EIS and Capacity data (Excel files in separate folders)
+Capacity_-40C/
+Capacity_25C/
+Capacity_50C/
+Impedance_-40C/
+Impedance_-5C/
+Impedance_25C/
+Impedance_50C/
+PLN_Number_SOC_Temp_StoragePeriod/
+
+# Literature PDFs
+Sushanth Paper Literature recent/
+
+# Reports and results (keep local)
+reports/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Zip archives
+*.zip

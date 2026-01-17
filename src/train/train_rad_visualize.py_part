@@ -1,0 +1,210 @@
+
+def visualize_results(
+    model: RADModel,
+    test_loader: DataLoader,
+    cell_id: str,
+    out_dir: str,
+    device: str = 'cpu',
+    debug_fusion: bool = False
+):
+    """Generate comprehensive visualization of RAD model results"""
+    Path(out_dir).mkdir(parents=True, exist_ok=True)
+    
+    model.eval()
+    predictions = []
+    
+    with torch.no_grad():
+        for X, soh, rul, mask in test_loader:
+            X, soh, rul, mask = X.to(device), soh.to(device), rul.to(device), mask.to(device)
+            soh_pred, rul_pred = model(X, mask=mask, use_retrieval=True, debug_fusion=debug_fusion)
+            
+            soh_pred = soh_pred.squeeze(0).cpu().numpy()
+            rul_pred_log = rul_pred.squeeze(0).cpu().numpy()
+            rul_pred = np.expm1(rul_pred_log)  # Convert from log space to cycles
+            soh_true = soh.squeeze(0).cpu().numpy()
+            rul_true = np.expm1(rul.squeeze(0).cpu().numpy())
+            m = mask.squeeze(0).cpu().numpy().astype(bool)
+            
+            # DIAGNOSTIC: Print retrieval information
+            if model.memory_bank.size() > 0:
+                with torch.no_grad():
+                    current_latent = model.encoder(X, mask)
+                    # Manually call retrieve with predicted SOH
+                    retrieved_latents, retrieved_data = model.memory_bank.retrieve(
+                        current_latent, k=model.retrieval_k,
+                        soh_constraint=torch.from_numpy(soh_pred).unsqueeze(0).to(X.device),
+                        soh_tolerance=0.05
+                    )
+                    
+                    # Extract retrieved RUL and SOH values
+                    retrieved_ruls = []
+                    retrieved_sohs = []
+                    
+                    if 'rul' in retrieved_data and len(retrieved_data['rul']) > 0:
+                        batch_ruls = retrieved_data['rul'][0]
+                        batch_sohs = retrieved_data['soh'][0]
+                        
+                        for r, s in zip(batch_ruls, batch_sohs):
+                            if isinstance(r, torch.Tensor):
+                                retrieved_ruls.append(r.item() if r.numel() == 1 else r.mean().item())
+                            if isinstance(s, torch.Tensor):
+                                retrieved_sohs.append(s.item() if s.numel() == 1 else s.mean().item())
+                    
+                    # Print diagnostics
+                    if len(retrieved_ruls) > 0:
+                        print(f"\n{'='*60}")
+                        print("DIAGNOSTIC: Retrieval Analysis")
+                        print(f"{'='*60}")
+                        print(f"True RUL (first valid): {rul_true[m][0] if m.any() else 'N/A':.2f} cycles")
+                        print(f"True SOH (mean): {np.mean(soh_true[m]):.4f}")
+                        print(f"Pred SOH (mean): {np.mean(soh_pred[m]):.4f}")
+                        print(f"GRU Head Prediction (first): {rul_pred[0]:.2f} cycles")
+                        print(f"Retrieved Neighbor RULs: {[f'{r:.2f}' for r in retrieved_ruls[:5]]}")
+                        print(f"Retrieved Neighbor SOHs: {[f'{s:.4f}' for s in retrieved_sohs[:5]]}")
+                        print(f"Retrieved RUL Mean: {np.mean(retrieved_ruls):.2f} cycles")
+                        print(f"Retrieved RUL Median: {np.median(retrieved_ruls):.2f} cycles")
+                        print(f"Retrieved RUL Range: {np.min(retrieved_ruls):.2f} - {np.max(retrieved_ruls):.2f} cycles")
+                        print(f"{'='*60}\n")
+            
+            # RAW OUTPUT MODE: No post-processing, use model predictions directly
+            # Only ensure non-negative
+            rul_pred = np.maximum(0.0, rul_pred)
+            
+            T = len(soh_true)
+            cycles = np.arange(T)
+            
+            # Calculate metrics
+            eps = 1e-8
+            soh_err = soh_pred[m] - soh_true[m]
+            rul_err = rul_pred[m] - rul_true[m]
+            
+            soh_mae = float(np.mean(np.abs(soh_err))) if m.any() else float('nan')
+            soh_mean = float(np.mean(soh_true[m])) if m.any() else float('nan')
+            soh_r2 = float(1.0 - np.sum(soh_err**2) / (np.sum((soh_true[m] - soh_mean)**2) + eps)) if m.any() else float('nan')
+            
+            rul_mae = float(np.mean(np.abs(rul_err))) if m.any() else float('nan')
+            rul_t_masked = rul_true[m]
+            nonzero = np.where(rul_t_masked > 1e-6)[0]
+            mape = float(np.mean(np.abs(rul_err[nonzero]) / (np.abs(rul_t_masked[nonzero]) + eps))) * 100.0 if nonzero.size > 0 else float('nan')
+            rul_mean = float(np.mean(rul_t_masked)) if m.any() else float('nan')
+            rul_r2 = float(1.0 - np.sum(rul_err**2) / (np.sum((rul_t_masked - rul_mean)**2) + eps)) if m.any() else float('nan')
+            
+            # Save predictions
+            df = pd.DataFrame({
+                'cycle_index': cycles,
+                'soh_true': soh_true,
+                'soh_pred': soh_pred,
+                'rul_true': rul_true,
+                'rul_pred': rul_pred,
+                'mask': m.astype(np.int32),
+            })
+            csv_path = os.path.join(out_dir, f"rad_predictions_{cell_id}.csv")
+            df.to_csv(csv_path, index=False)
+            
+            # Save metrics
+            metrics = pd.DataFrame([{
+                'cell_id': cell_id,
+                'SOH_MAE': soh_mae,
+                'SOH_R2': soh_r2,
+                'RUL_MAE_cycles': rul_mae,
+                'RUL_MAPE': mape,
+                'RUL_R2': rul_r2,
+                'Memory_Size': model.memory_bank.size()
+            }])
+            metrics_path = os.path.join(out_dir, f"rad_metrics_{cell_id}.csv")
+            metrics.to_csv(metrics_path, index=False)
+            
+            # Create comprehensive visualization (removed histograms)
+            fig = plt.figure(figsize=(16, 10))
+            gs = fig.add_gridspec(2, 2, hspace=0.3, wspace=0.3)
+            
+            # SOH predictions
+            ax1 = fig.add_subplot(gs[0, 0])
+            ax1.plot(cycles[m], soh_true[m], 'k-', label='True SOH', linewidth=2.5, alpha=0.8)
+            ax1.plot(cycles[m], soh_pred[m], 'b-', label='RAD Prediction', linewidth=2, alpha=0.7)
+            ax1.fill_between(cycles[m], soh_true[m] - soh_mae, soh_true[m] + soh_mae, 
+                            alpha=0.2, color='gray', label=f'±MAE ({soh_mae:.4f})')
+            ax1.set_ylabel('SOH', fontsize=12, fontweight='bold')
+            ax1.set_title(f'SOH Prediction (RAD Model)\nMAE={soh_mae:.4f}, R²={soh_r2:.3f}', 
+                         fontsize=13, fontweight='bold')
+            ax1.legend(loc='best', fontsize=10)
+            ax1.grid(True, linestyle='--', alpha=0.4)
+            ax1.set_ylim(0.0, 1.2)
+            
+            # RUL predictions
+            ax2 = fig.add_subplot(gs[0, 1])
+            ax2.plot(cycles[m], rul_true[m], 'k-', label='True RUL', linewidth=2.5, alpha=0.8)
+            ax2.plot(cycles[m], rul_pred[m], 'r-', label='RAD Prediction', linewidth=2, alpha=0.7)
+            ax2.fill_between(cycles[m], rul_true[m] - rul_mae, rul_true[m] + rul_mae, 
+                            alpha=0.2, color='gray', label=f'±MAE ({rul_mae:.2f} cycles)')
+            ax2.set_ylabel('RUL (cycles)', fontsize=12, fontweight='bold')
+            ax2.set_title(f'RUL Prediction (RAD Model)\nMAE={rul_mae:.2f} cycles, MAPE={mape:.2f}%, R²={rul_r2:.3f}', 
+                         fontsize=13, fontweight='bold')
+            ax2.legend(loc='best', fontsize=10)
+            ax2.grid(True, linestyle='--', alpha=0.4)
+            
+            # SOH residuals
+            ax3 = fig.add_subplot(gs[1, 0])
+            residuals_soh = soh_pred[m] - soh_true[m]
+            ax3.plot(cycles[m], residuals_soh, 'b-', linewidth=1.5, alpha=0.7)
+            ax3.axhline(0, color='k', linestyle='--', linewidth=1.5)
+            ax3.fill_between(cycles[m], -soh_mae, soh_mae, alpha=0.2, color='gray')
+            ax3.set_ylabel('SOH Residual', fontsize=12, fontweight='bold')
+            ax3.set_xlabel('Cycle Index', fontsize=12, fontweight='bold')
+            ax3.set_title('SOH Residuals', fontsize=13, fontweight='bold')
+            ax3.grid(True, linestyle='--', alpha=0.4)
+            
+            # RUL residuals
+            ax4 = fig.add_subplot(gs[1, 1])
+            residuals_rul = rul_pred[m] - rul_true[m]
+            ax4.plot(cycles[m], residuals_rul, 'r-', linewidth=1.5, alpha=0.7)
+            ax4.axhline(0, color='k', linestyle='--', linewidth=1.5)
+            ax4.fill_between(cycles[m], -rul_mae, rul_mae, alpha=0.2, color='gray')
+            ax4.set_ylabel('RUL Residual (cycles)', fontsize=12, fontweight='bold')
+            ax4.set_xlabel('Cycle Index', fontsize=12, fontweight='bold')
+            ax4.set_title('RUL Residuals', fontsize=13, fontweight='bold')
+            ax4.grid(True, linestyle='--', alpha=0.4)
+            
+            # Add model info text
+            info_text = f'RAD Model Results\n'
+            info_text += f'Memory Bank Size: {model.memory_bank.size()}\n'
+            info_text += f'Retrieval k: {model.retrieval_k}'
+            fig.suptitle(info_text, fontsize=14, fontweight='bold', y=0.995)
+            
+            # Mark EoL
+            eol_idx = None
+            try:
+                idxs = np.where(rul_true <= 0.5)[0]
+                if idxs.size > 0:
+                    eol_idx = int(idxs[0])
+            except Exception:
+                pass
+            if eol_idx is not None:
+                for ax in [ax1, ax2, ax3, ax4]:
+                    ax.axvline(eol_idx, color='red', linestyle=':', linewidth=1.5, alpha=0.8, label='EoL')
+                ax2.legend()  # Update legend to include EoL marker
+            
+            png_path = os.path.join(out_dir, f"rad_results_{cell_id}.png")
+            svg_path = os.path.join(out_dir, f"rad_results_{cell_id}.svg")
+            fig.savefig(png_path, dpi=150, bbox_inches='tight')
+            fig.savefig(svg_path, dpi=150, bbox_inches='tight')
+            plt.close(fig)
+            
+            print(f"\n{'='*60}")
+            print(f"RAD Model Results for {cell_id}")
+            print(f"{'='*60}")
+            print(f"SOH MAE: {soh_mae:.4f}")
+            print(f"SOH R²:  {soh_r2:.3f}")
+            print(f"RUL MAE: {rul_mae:.2f} cycles")
+            print(f"RUL MAPE: {mape:.2f}%")
+            print(f"RUL R²:  {rul_r2:.3f}")
+            print(f"Memory Bank Size: {model.memory_bank.size()}")
+            print(f"{'='*60}")
+            print(f"\nResults saved to:")
+            print(f"  - {csv_path}")
+            print(f"  - {metrics_path}")
+            print(f"  - {png_path}")
+            print(f"  - {svg_path}")
+            
+            break
+
