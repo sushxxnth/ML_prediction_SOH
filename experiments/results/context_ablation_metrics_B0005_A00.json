@@ -1,0 +1,15 @@
+{
+  "vehicle_id": "B0005_A00",
+  "profile_type": "Aggressive",
+  "scenario_a_mae": 22.901395797729492,
+  "scenario_a_r2": 0.8689977593415454,
+  "scenario_a_bias": -21.874237060546875,
+  "scenario_b_mae": 22.88927459716797,
+  "scenario_b_r2": 0.8693430420831613,
+  "scenario_b_bias": -21.838041305541992,
+  "scenario_c_mae": 23.389726638793945,
+  "scenario_c_r2": 0.8639150019222812,
+  "scenario_c_bias": -22.586225509643555,
+  "mae_improvement": -0.012121200561523438,
+  "r2_improvement": -0.0003452827416158266
+}

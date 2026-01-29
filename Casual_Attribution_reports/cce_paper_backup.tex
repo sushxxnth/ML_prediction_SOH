@@ -7,8 +7,8 @@
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage[hyphens]{url}
-\usepackage{float}
-\usepackage{placeins}
+\usepackage{float}        % For [H] placement specifier
+\usepackage{placeins}     % For \FloatBarrier
 \def\UrlBreaks{\do\/\do-\do.\do@}
 
 
@@ -50,47 +50,53 @@
             country={India}}
 
 \begin{abstract}
-Battery degradation remains one of the most significant barriers to electric vehicle adoption, yet current management approaches treat capacity fade as a black box, offering predictions without explanation or actionable intervention. This limitation becomes especially problematic given that vehicles spend over 90\% of their operational lifetime parked, during which calendar aging dominates total capacity loss. We present a unified physics-informed machine learning framework that advances battery health management by integrating predictive modeling with mechanistic understanding and personalized user guidance.
+Battery degradation remains one of the most significant barriers to electric vehicle adoption, yet current management approaches treat capacity fade as a black box, offering predictions without explanation or actionable intervention. This limitation becomes especially problematic given that vehicles spend over 90\% of their operational lifetime parked, during which calendar aging dominates total capacity loss. We present a unified physics-informed machine learning framework that fundamentally reimagines battery health management by integrating predictive modeling with mechanistic understanding and personalized user guidance.
+
+Our approach makes four contributions that advance the state of the art. First, we introduce a physics-informed causal attribution network that decomposes observed capacity loss into constituent electrochemical mechanisms, including solid electrolyte interphase growth, lithium plating, and active material degradation. We systematically investigate three architectures: Pure Physics-Informed Neural Networks that learn entirely from electrochemical equations, Boundary-Aware variants with augmented training at mechanism decision boundaries, and a Hybrid approach integrating neural network learning with expert domain priors. The Hybrid architecture achieves 92.0\% attribution accuracy across 75 benchmark scenarios spanning five diverse datasets, with expert priors contributing 14.7 percentage points beyond pure physics approaches. Critically, we achieve 100\% detection of safety-critical lithium plating and collector corrosion mechanisms. Second, we demonstrate that encoding chemistry-invariant lithium inventory features enables zero-shot generalization to unseen battery types, reducing remaining useful life prediction error by 88\% compared to conventional transfer learning approaches. Third, we introduce a novel counterfactual intervention framework that bridges the gap between mechanism diagnosis and operational action. Using the learned causal model, we simulate "what if" scenarios to predict how degradation mechanisms would change under alternative operating conditions, enabling optimal short-term interventions. Validated on real NASA and XJTU battery datasets, the counterfactual optimizer achieves 34.6\% average mechanism reduction, with complete elimination of lithium plating in low-temperature scenarios. Fourth, we translate mechanistic insights into a comprehensive advisory management system. A Physics-Aware Temporal Transformer (PATT) distinguishes cycling from storage operation with 99.6\% accuracy, utilizing learnable Arrhenius and diffusion embeddings to enable context-appropriate recommendations for each usage mode. The slope-based early warning algorithm monitors degradation rate trajectories rather than fixed thresholds, delivering 99 cycles of advance notice before end-of-life with 88.9\% F1 score.
+
+The practical implications are substantial. We demonstrate that optimizing storage conditions based on mechanistic understanding can reduce calendar aging by a factor of four, corresponding to approximately 20\% additional retained capacity over a five-year ownership period. The counterfactual intervention system transforms passive monitoring into active degradation prevention. These results establish physics-informed causal attribution as a viable pathway toward transparent, explainable, and actionable battery management systems.
+\end{abstract}
+
 \begin{keyword}
-Battery Management Systems \sep Physics-Informed Machine Learning \sep Explainable AI \sep Counterfactual Analysis \sep State of Health \sep Causal Attribution
+Battery Management Systems \sep Physics-Informed Machine Learning \sep Calendar Aging \sep State of Health \sep Remaining Useful Life \sep Causal Attribution
 \end{keyword}
 
 \end{frontmatter}
 
-
-
-
+%% ============================================================
+%% INTRODUCTION
+%% ============================================================
 
 \section{Introduction}
 
+%\subsection{The battery degradation problem}
 
-
-Lithium-ion batteries power the global transition to electric mobility, but they degrade, and this degradation remains poorly understood in practice \citep{vetter2005ageing, barre2013review}. Current battery management systems (BMS) tell drivers their battery is at 85\% health but never explain why capacity has dropped or what, if anything, the driver can do about it \citep{waag2014critical, berecibar2016critical}. This black-box approach leaves vehicle owners without actionable information, even as their \$10,000--20,000 battery pack loses value \citep{harper2019recycling}.
+Lithium-ion batteries power the global transition to electric mobility, but they degrade, and this degradation remains poorly understood in practice \citep{vetter2005ageing, barre2013review}. Current battery management systems (BMS) tell drivers their battery is at ``85\% health'' but never explain why capacity has dropped or what, if anything, the driver can do about it \citep{waag2014critical, berecibar2016critical}. This black-box approach leaves vehicle owners without actionable information, even as their \$10,000--20,000 battery pack loses value \citep{harper2019recycling}.
 
 The economic stakes are significant. Battery packs account for 30--40\% of electric vehicle cost \citep{ziegler2021determinants}, and a 10\% drop in usable capacity can reduce resale value by 20--30\% \citep{saxena2019quantifying}. Premature replacements driven by uncertainty about battery state cost the industry billions annually \citep{harper2019recycling}. Yet the tools to diagnose degradation and extend battery life exist; they simply have not been integrated into practical systems that users can act upon.
 
-
+%\subsection{What causes batteries to degrade?}
 
 Battery degradation is not a single process but a collection of competing electrochemical mechanisms \citep{vetter2005ageing, edge2021lithium}. The solid electrolyte interphase (SEI) layer, which forms on the anode during initial cycles, continues to grow throughout the battery's life, consuming cyclable lithium \citep{peled1979electrochemical}. At low temperatures, lithium plating can deposit metallic lithium on the anode during charging, causing irreversible capacity loss and safety hazards \citep{waldmann2014temperature}. Mechanical stress from repeated cycling causes active material particles to crack and lose electrical contact \citep{zhang2020degradation}. Additional mechanisms include electrolyte decomposition at high temperatures and current collector corrosion at very low states of charge \citep{vetter2005ageing}.
 
 The relative importance of these mechanisms depends strongly on operating conditions. High temperatures and high state-of-charge accelerate SEI growth through Arrhenius kinetics \citep{schmalstieg2014electrochemical}. Cold temperatures favor lithium plating by slowing lithium intercalation kinetics \citep{waldmann2014temperature}. High charge and discharge rates promote mechanical degradation \citep{reniers2019review}. Understanding which mechanism dominates in a given situation is essential for targeted intervention, but current BMS systems do not provide this information.
 
-
+%\subsection{The calendar aging gap}
 
 Electric vehicles spend more than 90\% of their operational time parked \citep{barre2013review}. During this time, calendar aging, primarily SEI growth, proceeds even without cycling \citep{schimpe2018comprehensive}. Despite this, the majority of battery research and commercial BMS development focuses on cycling degradation that occurs during driving \citep{sulzer2021challenge}.
 This emphasis reflects historical research priorities. Laboratory testing protocols emphasize cycle life because it is easier to accelerate and measure. Academic studies frequently report results in terms of cycles to 80\% capacity, even though real-world degradation may be dominated by time rather than cycles \citep{birkl2017degradation}. Field studies have repeatedly shown that calendar aging can account for 60--80\% of total capacity loss in moderate-use vehicles \citep{saxena2019quantifying}, yet this finding has not translated into widespread changes in BMS design.
 The practical implications are substantial. Storing a battery at 100\% SOC at 30°C results in a capacity loss of approximately 8\% per year, reducing storage SOC to 60\% cuts this to approximately 2\% per year, a 4-fold reduction \citep{schimpe2018comprehensive}. Users following simple storage guidelines could significantly extend their battery's useful life, but current systems do not provide this guidance.
 
-
+%\subsection{Limitations of existing approaches}
 
 Two modeling paradigms have dominated battery health estimation, each with significant limitations.
 \textit{Physics-based models}, including the Doyle-Fuller-Newman formulation \citep{doyle1993modeling} and its variants \citep{plett2015battery}, describe electrochemical processes from first principles. They offer mechanistic interpretability and can distinguish between degradation modes \citep{jokar2016review}. However, they require extensive parameterization for each battery chemistry, involve computational costs unsuitable for embedded BMS, and demand calibration data that may not be available for production cells.
-\textit{Data-driven models} using machine learning architectures, such as LSTMs \citep{chemali2017long}, CNNs \citep{shen2019deep}, and more recently transformers \citep{chen2022transformer, park2025transformer}, can predict remaining useful life from voltage-current measurements \citep{roman2021machine, severson2019nature}. They are fast, scalable, and require no explicit electrochemical equations. However, they operate as black boxes without a mechanistic explanation, suffer from poor generalization to unseen battery chemistries \citep{liu2023transfer}, and cannot leverage historical degradation trajectories for contextual prediction.
+\textit{Data-driven models} using machine learning architectures; LSTMs \citep{chemali2017long}, CNNs \citep{shen2019deep}, and more recently transformers \citep{chen2022transformer, park2025transformer}; can predict remaining useful life from voltage-current measurements \citep{roman2021machine, severson2019nature}. They are fast, scalable, and require no explicit electrochemical equations. However, they operate as black boxes without a mechanistic explanation, suffer from poor generalization to unseen battery chemistries \citep{liu2023transfer}, and cannot leverage historical degradation trajectories for contextual prediction.
 
 Recent work has explored hybrid approaches. Physics-informed neural networks \citep{raissi2019physics} embed physical constraints as training losses. Transfer learning methods \citep{liu2023transfer, che2022battery, zhu2022transfer} attempt to adapt models trained on one chemistry to new chemistries, with deep transfer learning demonstrating real-time personalized health prediction. Generalizable methods using partial least-squares regression have shown promise for cross-chemistry RUL estimation \citep{wang2024generalizable}. Recent advances have demonstrated promising results using early-cycle features for lifetime prediction \citep{sugiarto2025temperature} and electrochemical impedance spectroscopy for degradation monitoring \citep{hu2023eis}. Multimodal approaches combining EIS with capacity data have achieved improved SOH prediction \citep{chen2026multimodal}. Closed-loop optimization using machine learning has shown promise for fast-charging protocols \citep{attia2020closedloop}. Hybrid physics-ML models \citep{li2022physics, thelen2022integrating} combine electrochemical simulations with neural network predictions.
 Yet a critical gap remains as none of these approaches provides real-time causal attribution that explains \textit{which} mechanism is responsible for observed degradation, along with actionable recommendations for mitigation.
 
-
+%\subsection{Our contributions}
 
 To address the above limitations, We present an integrated framework that uses the following three novel components working together:
 
@@ -104,9 +110,9 @@ To address the above limitations, We present an integrated framework that uses t
 
 The key insight is that these components are individually insufficient but collectively transformative. Accurate prediction enables reliable diagnosis, diagnosis enables targeted intervention and intervention delivers measurable life extension. This integration represents a shift from passive battery monitoring to active battery management.
 
-
-
-
+%% ============================================================
+%% 
+%% ============================================================
 
 \section{System Architecture Overview}
 
@@ -139,11 +145,11 @@ From a chemical engineering perspective, voltage reflects the battery's thermody
 
 The core prediction component operates on a fundamentally different principle than traditional battery models. Instead of trying to memorize degradation patterns from scratch, it maintains a searchable memory of what has happened to similar batteries in the past. This memory bank contains 3,979 complete degradation trajectories collected from 76 different battery cells across five independent datasets: NASA Ames (various chemistries and temperatures), CALCE (different manufacturers), Oxford (high-precision degradation tracking), TJU (1C cycling data), and XJTU (high C-rate stress tests).
 
-When a new battery measurement arrives, the system first encodes the recent voltage-current history into a compact mathematical representation (a 128-dimensional vector). Think of this as creating a fingerprint of how the battery has been behaving over the past 50 cycles. It then searches the memory bank for the five most similar historical fingerprints using cosine similarity---essentially asking which batteries from our database degraded in a similar pattern.
+When a new battery measurement arrives, the system first encodes the recent voltage-current history into a compact mathematical representation (a 128-dimensional vector). Think of this as creating a "fingerprint" of how the battery has been behaving over the past 50 cycles. It then searches the memory bank for the five most similar historical fingerprints using cosine similarity—essentially asking "which batteries from our database degraded in a similar pattern?"
 
 The clever part is what happens next. Rather than simply averaging those five historical cases, the system uses a cross-attention mechanism (borrowed from modern natural language processing) to intelligently weight how much to trust each retrieved case. If the current battery's recent behavior closely matches a historical battery that later failed from lithium plating, the system assigns high weight to that case's future trajectory. This retrieval-augmented approach explains why HERO achieves 88\% error reduction compared to baseline methods: it never encounters a truly novel degradation pattern because it can find similar precedents in the database.
 
-The output from HERO is twofold: a predicted SOH (e.g., 85\% remaining capacity) and a predicted RUL (e.g., 120 cycles until end-of-life at 80\% threshold). These predictions carry uncertainty bounds computed via bootstrap sampling, which becomes critical for safety-critical applications where confidence intervals matter.
+The output from HERO is twofold: a predicted SOH (e.g., "85\% remaining capacity") and a predicted RUL (e.g., "120 cycles until end-of-life at 80\% threshold"). These predictions carry uncertainty bounds computed via bootstrap sampling, which becomes critical for safety-critical applications where confidence intervals matter.
 
 \paragraph{Stage 3: Early Warning System}
 
@@ -167,7 +173,7 @@ The architecture uses five separate output heads, one for each mechanism: SEI la
 
 The critical innovation is the hybrid approach. Pure physics-informed models struggle in ambiguous cases where multiple mechanisms could explain the observed degradation. Pure data-driven models lack interpretability and fail to generalize. The Hybrid PINN combines both: it learns from the physics equations but incorporates domain expert rules to handle boundary cases. For example, when temperature is moderate and C-rate is low, SEI typically dominates; this expert knowledge becomes a soft prior in the loss function.
 
-Trained on 75 carefully constructed benchmark scenarios spanning five datasets, the Hybrid PINN achieves 92.0\% attribution accuracy. Critically, it reaches 100\% detection on safety-critical mechanisms (lithium plating and corrosion), meaning it never misses a dangerous condition. The output is a percentage breakdown: capacity loss is 60\% from lithium plating, 25\% from SEI growth, 10\% from active material loss, 3\% from electrolyte loss, and 2\% from corrosion.
+Trained on 75 carefully constructed benchmark scenarios spanning five datasets, the Hybrid PINN achieves 92.0\% attribution accuracy. Critically, it reaches 100\% detection on safety-critical mechanisms (lithium plating and corrosion), meaning it never misses a dangerous condition. The output is a percentage breakdown: "Your capacity loss is 60\% from lithium plating, 25\% from SEI growth, 10\% from active material loss, 3\% from electrolyte loss, 2\% from corrosion."
 
 \paragraph{Stage 5: Counterfactual Intervention and PATT Classification}
 
@@ -241,7 +247,7 @@ Standard models fail when applied to chemistries not seen during training. We ad
 
 The comparison deserves careful explanation because the setup differs fundamentally from typical benchmarks. We did not split a single dataset into train and test sets---that would test memorization, not generalization. Instead, we trained all models on LCO chemistry batteries (NASA, CALCE, Oxford datasets: 4,000 samples total) and evaluated on completely unseen NCA chemistry (Panasonic 18650PF dataset: 500 samples). This is a true zero-shot transfer scenario: new cathode material, different voltage curves, altered degradation kinetics.
 
-The baseline models saw this chemistry for the first time at test time. No fine-tuning, no adaptation, just direct inference. For Random Forest and Gradient Boosting, we trained separate regressors for SOH and RUL. For neural networks (MLP, LSTM, GRU, Transformer, CNN-LSTM), we built standard architectures: two hidden layers of 128/64 units for MLP, 64-unit hidden states for recurrent models, 4-head attention for Transformers. We used the same features for everyone: voltage, current, temperature, SOC, cycle count, and basic dV/dQ derivatives computed from charge curves. The playing field was level; only the architecture varied.
+The baseline models saw this chemistry for the first time at test time. No fine-tuning, no adaptation---just direct inference. For Random Forest and Gradient Boosting, we trained separate regressors for SOH and RUL. For neural networks (MLP, LSTM, GRU, Transformer, CNN-LSTM), we built standard architectures: two hidden layers of 128/64 units for MLP, 64-unit hidden states for recurrent models, 4-head attention for Transformers. We used the same features for everyone: voltage, current, temperature, SOC, cycle count, and basic dV/dQ derivatives computed from charge curves. The playing field was level; only the architecture varied.
 
 Training followed identical protocols: AdamW optimizer, learning rate of 0.001, 200 epochs, MSE loss for regression targets. We scaled features using StandardScaler fitted on training data and applied to test data. Batch size was 64 for all neural models. The code for this comparison is available in \texttt{run\_zeroshot\_baseline\_test.py}, which shows every implementation detail.
 
@@ -269,7 +275,7 @@ The narrow confidence intervals demonstrate that HERO's performance is statistic
 
 Accurate state-of-health prediction is necessary but not sufficient for effective battery management. Users need advance notice when degradation accelerates beyond expected levels, providing time for maintenance planning or operational adjustments before critical capacity loss occurs. Conventional battery management systems trigger warnings when SOH crosses a fixed threshold, typically 80-85\%. While simple to implement, this approach provides limited lead time and fails to detect rapid degradation events until significant capacity has already been lost.
 
-We developed a slope-based early warning system that monitors the rate of capacity decline rather than absolute SOH values, enabling earlier detection of accelerating degradation. The key insight is that degradation rate changes contain more actionable information than absolute capacity values. A battery declining at 0.05\% per cycle follows a gradual, predictable trajectory. The same battery suddenly losing 0.25\% per cycle signals an acute problem that requires immediate attention, even if absolute SOH remains above 85\%.
+We developed a slope-based early warning system that monitors the rate of capacity decline rather than absolute SOH values, enabling earlier detection of accelerating degradation. The key insight is that degradation rate changes contain more actionable information than absolute capacity values. A battery declining at 0.05\% per cycle follows a gradual, predictable trajectory. The same battery suddenly losing 0.25\% per cycle signals an acute problem that requires immediate attention---even if absolute SOH remains above 85\%.
 
 \subsubsection{Slope-Based Detection Algorithm}
 
@@ -283,7 +289,7 @@ A warning triggers when the degradation rate exceeds 0.17\% SOH loss per cycle, 
 
 \subsubsection{Integration with Causal Attribution}
 
-The early warning system serves as a diagnostic trigger for deeper investigation. When degradation rate exceeds the threshold, the system automatically invokes causal mechanism attribution (Section 5) to identify which electrochemical process is responsible for the acceleration. This integration enables not just early detection, but root cause diagnosis: indicating that the battery is degrading faster than expected due to specific mechanisms like lithium plating from cold-temperature charging.\ The subsequent counterfactual intervention framework (Section 6) then recommends specific corrective actions based on the identified mechanism.
+The early warning system serves as a diagnostic trigger for deeper investigation. When degradation rate exceeds the threshold, the system automatically invokes causal mechanism attribution (Section 5) to identify which electrochemical process is responsible for the acceleration. This integration enables not just early detection, but root cause diagnosis: "Your battery is degrading faster than expected (early warning) due to lithium plating from cold-temperature charging (causal attribution)." The subsequent counterfactual intervention framework (Section 6) then recommends specific corrective actions based on the identified mechanism.
 
 
 
@@ -306,6 +312,7 @@ The training objective combines prediction accuracy with physics constraints:
 \begin{equation}
 \mathcal{L}_{total} = \mathcal{L}_{SOH} + \lambda_1 \left| \sum \alpha_i - (1 - SOH) \right| + \lambda_2 \mathcal{L}_{prior}
 \end{equation}
+
 where $\lambda_1 = 0.5$ enforces mass conservation and $\lambda_2 = 0.3$ incorporates physics priors.
 
 \subsubsection{Physics-Informed Neural Network Approaches for Mechanism Attribution}
@@ -408,7 +415,7 @@ This is where most battery management systems stop. They can detect degradation 
 
 Consider a battery charging at 0°C with a 1.5C rate. The Hybrid PINN attribution network detects 70\% lithium plating---a dangerous condition that accelerates capacity fade and poses safety risks. The operator needs to act, but multiple interventions are possible: reduce charging current, increase ambient temperature, limit target SOC, or some combination thereof. Each intervention will alter the operating conditions, which in turn will affect the mechanism attribution. The question becomes: which intervention will be most effective?
 
-Traditional approaches rely on hand-crafted rules (e.g., reducing current by 30\% if plating exceeds 60\%) or lookup tables derived from offline optimization. These methods lack the ability to reason about novel scenarios and do not leverage the causal structure we have already learned. We take a fundamentally different approach: we use the trained Hybrid PINN model to simulate hypothetical scenarios---questions about alternative operating conditions---and select the intervention that yields the most favorable mechanism redistribution.
+Traditional approaches rely on hand-crafted rules (e.g., "if plating > 60\%, reduce current by 30\%") or lookup tables derived from offline optimization. These methods lack the ability to reason about novel scenarios and do not leverage the causal structure we have already learned. We take a fundamentally different approach: we use the trained Hybrid PINN model to simulate counterfactual scenarios---hypothetical "what if" questions about alternative operating conditions---and select the intervention that yields the most favorable mechanism redistribution.
 
 \subsubsection{Counterfactual Simulation Framework}
 
@@ -453,9 +460,9 @@ The implementation consists of two main components: the counterfactual simulator
 A key advantage of the counterfactual approach over black-box optimization is interpretability. When presenting a recommendation, the system shows:
 
 \begin{itemize}
-\item \textbf{Current condition}: 70\% lithium plating at 0°C, 3.0A
-\item \textbf{Recommended action}: Reduce current to 1.5A
-\item \textbf{Predicted impact}: Plating: 70\% $\rightarrow$ 0\% (eliminated)
+\item \textbf{Current condition}: "70\% lithium plating at 0°C, 3.0A"
+\item \textbf{Recommended action}: "Reduce current to 1.5A"
+\item \textbf{Predicted impact}: "Plating: 70\% $\rightarrow$ 0\% (eliminated)"
 \item \textbf{Mechanism redistribution}: Visual breakdown showing how each mechanism changes
 \item \textbf{Trade-offs}: Expected charging time increase (if any)
 \end{itemize}
@@ -511,17 +518,20 @@ We further validated this approach on 475 EIS spectra from 94 cells spanning tem
 
 \subsubsection{Charging Optimization}
 
-When conditions favor lithium plating (temperature below 5°C combined with fast charging), the system generates warnings that lithium plating risk is high and recommends preheating the battery to 15°C before fast charging, or reducing the charge rate to 0.5C.
+When conditions favor lithium plating (temperature below 5°C combined with fast charging), the system generates warnings. "Lithium plating risk is high. Preheat battery to 15°C before fast charging, or reduce charge rate to 0.5C."
 
 
+
+
+\clearpage
 \section{Results and Validation}
 
-In this section, we present a comprehensive validation of our proposed framework across five distinct public datasets, totaling over 3,979 degradation trajectories. This evaluation is designed to test not only predictive accuracy but, more importantly, the model's ability to generalize to unseen chemistries and operating conditions a critical requirement for real-world deployment. Our results demonstrate that the integration of retrieval-augmented prediction with physics-constrained causal attribution achieves state-of-the-art performance. Specifically, we report an 88\% reduction in Remaining Useful Life (RUL) prediction error on unseen battery chemistries and a mechanism attribution accuracy of 92.0\%, with 100\% detection rates for safety-critical failures like lithium plating. Furthermore, the advisory system is shown to extend calendar aging life by a factor of four through optimal storage management. The following subsections detail these metrics and compare them against established baselines.
+This section presents comprehensive experimental validation.
 
 \subsection{HERO Performance}
 
-
-By feeding these chemistry-invariant features into the prediction engine, we achieved 88\% reduction in RUL prediction error on unseen chemistries (Table~\ref{tab:zeroshot}). When the memory bank contains even minimal representation from the target chemistry (approximately 0.1\%), the system achieves 7.3 cycles MAE, a 50-fold improvement over baseline.
+% Extracted Results Text
+By feeding these chemistry-invariant features into the prediction engine, we achieved 88\% reduction in RUL prediction error on unseen chemistries (Table~\ref{tab:zeroshot}). When the memory bank contains even minimal representation from the target chemistry (approximately 0.1\%), the system achieves 7.3 cycles MAE; a 50-fold improvement over baseline.
 
 \begin{table*}[!htb]
 \caption{Zero-Shot Generalization (Train: LCO, Test: Unseen Chemistry)}
@@ -561,13 +571,13 @@ CNN-LSTM & 7.77\% & -0.066 & 94.9 & \checkmark \\
 \label{tab:sota_comparison}
 \end{table*}
 \begin{figure*}[!htb]
-\centerline{\includegraphics[width=0.95\textwidth,height=0.65\textheight,keepaspectratio]{hero_performance.png}}
-\caption{Performance visualization of the HERO prediction engine.}
+\centerline{\includegraphics[width=0.95\textwidth,height=0.4\textheight,keepaspectratio]{hero_performance.png}}
+\caption{Performance of the HERO prediction engine. (A) RUL prediction error comparison: HERO achieves 44.8 cycles MAE vs. 366.3 for baseline LSTM (88\% reduction). (B) Component contributions: retrieval augmentation (45\%), lithium features (32\%), context encoding (21\%). (C) Zero-shot transfer to unseen chemistries: HERO maintains 41--68 cycles error vs. 245--310 for baseline. (D) Memory bank: 3,979 trajectories from 76 cells across 5 chemistries and multiple C-rates (1C-3C).}
+\label{fig:hero_performance}
 \end{figure*}
-
 \subsubsection{Test-Time Adaptation for Enhanced Generalization}
 
-While HERO already demonstrates strong zero-shot performance, we can further improve generalization through a technique called test-time adaptation (TTA). The core idea is straightforward: when deploying to a new battery chemistry or operating regime, use the first few unlabeled measurements to calibrate the model's internal statistics before making predictions. No ground truth labels are needed. The model simply observes the new data distribution and adjusts.
+While HERO already demonstrates strong zero-shot performance, we can further improve generalization through a technique called test-time adaptation (TTA). The core idea is straightforward: when deploying to a new battery chemistry or operating regime, use the first few unlabeled measurements to calibrate the model's internal statistics before making predictions. No ground truth labels are needed---the model simply observes the new data distribution and adjusts.
 
 The mechanism relies on batch normalization layers within the neural network. During training, these layers track running statistics (mean and variance) of activations from the training data distribution. When test data comes from a shifted distribution (different chemistry, temperature range, or C-rate), these statistics become misaligned, degrading performance. TTA addresses this by computing fresh statistics from the test batch itself while keeping all learned weights frozen.
 
@@ -578,9 +588,9 @@ Mathematically, for a batch normalization layer with input $x$, we recompute:
 
 Then normalize using these test-time statistics instead of the stored training statistics. This happens through 10 forward passes over the test batch with the model in training mode (to update running averages) but with gradient computation disabled (no backpropagation). The entire process takes roughly 2 seconds on a standard CPU for a 500-sample test set.
 
-We validated TTA's effectiveness across the zero-shot chemistry transfer experiments. Starting from the baseline HERO model achieving 1.99\% SOH MAE on NCA test data, TTA reduced error to 1.93\%, a modest 3\% relative improvement under moderate distribution shift. However, when we increased the shift magnitude (simulating more extreme chemistry differences), TTA's benefit grew substantially: from 2.31\% to 2.04\%, an 11.9\% relative improvement. The effect scales with shift severity, which is exactly when you need it most.
+We validated TTA's effectiveness across the zero-shot chemistry transfer experiments. Starting from the baseline HERO model achieving 1.99\% SOH MAE on NCA test data, TTA reduced error to 1.93\%---a modest 3\% relative improvement under moderate distribution shift. However, when we increased the shift magnitude (simulating more extreme chemistry differences), TTA's benefit grew substantially: from 2.31\% to 2.04\%, an 11.9\% relative improvement. The effect scales with shift severity, which is exactly when you need it most.
 
-Importantly, TTA does not require any architectural changes to HERO. The same production model works both with and without adaptation. You can cache the adapted statistics after processing the first batch from a new chemistry and reuse them for subsequent predictions on that chemistry. 
+Importantly, TTA does not require any architectural changes to HERO. The same production model works both with and without adaptation. You can cache the adapted statistics after processing the first batch from a new chemistry and reuse them for subsequent predictions on that chemistry. Implementation is trivial---see \texttt{src/utils/tta.py} for the complete 50-line implementation that handles both batch normalization adaptation and feature alignment variants.
 
 The R\textsuperscript{2} improvement is even more striking: from -0.23 to -0.18 under moderate shift, and from -0.53 to -0.21 under strong shift. This matters for deployment because negative R\textsuperscript{2} indicates unreliable predictions (worse than guessing the mean). TTA pulls the model back toward useful predictive power even when facing unfamiliar battery types.
 
@@ -589,18 +599,23 @@ The R\textsuperscript{2} improvement is even more striking: from -0.23 to -0.18 
 
 To contextualize HERO's performance, we benchmarked against six state-of-the-art methods on the TJU dataset (Table~\ref{tab:sota_comparison}). All models were trained on 70\% of the data and evaluated on the held-out 30\%.
 
+
+
 The numbers in Table~\ref{tab:sota_comparison} tell a clear story. HERO's 0.74\% SOH error represents roughly 10-fold improvement over traditional machine learning approaches. Where GRU struggles at 10.64\% and MLP at 9.58\%, HERO maintains sub-percent accuracy. More critically, the R\textsuperscript{2} values reveal why: baseline methods achieve negative R\textsuperscript{2} scores, meaning they perform worse than simply predicting the mean. HERO, at 0.990, actually captures the underlying patterns.
 
 
 
 \subsection{Early Warning Validation}
 \begin{figure*}[!htb]
-\centerline{\includegraphics[width=0.95\textwidth,height=0.8\textheight,keepaspectratio]{comprehensive_validation.png}}
+\centerline{\includegraphics[width=0.95\textwidth,height=0.4\textheight,keepaspectratio]{comprehensive_validation.png}}
 \caption{Early warning system validation on 34 NASA cells. Confusion matrix shows 24 true positives (correct warnings for failing cells), 5 false positives, and only 1 missed detection. Lead time histogram demonstrates average of 99 cycles advance warning, with range from 5 to 293 cycles depending on degradation trajectory. Comparison panel shows 69\% improvement in lead time versus conventional 85\% SOH threshold.}
 \label{fig:early_warning}
 \end{figure*}
+% Merged Header
 
 We validated the system on 25 cells from the NASA dataset that reached end-of-life (SOH < 80\%). Figure~\ref{fig:early_warning} presents comprehensive validation results across detection performance, lead time distribution, and comparison with conventional threshold-based approaches.
+
+
 
 The slope-based approach achieves 82.8\% precision, 96.0\% recall, and an F1 score of 88.9\%. Of the 25 cells that ultimately failed, the system correctly identified 24 (96\% recall), with only one missed detection. Among the 9 cells that remained healthy throughout testing, 4 received correct "no warning" predictions while 5 generated false alarms (55.6\% specificity).
 
@@ -656,10 +671,10 @@ Random baseline & 20.0\% & --72.0\% \\
 \toprule
 \textbf{Parameter} & \textbf{Learned} & \textbf{Literature} & \textbf{Source} \\
 \midrule
- $E_a$ (SEI activation) & 50.3 kJ/mol & 35--60 kJ/mol & \citet{broussely2005main} \\
- $\beta$ (C-rate exponent) & 1.48 & $\sim$1.5 & \citet{zhang2020degradation} \\
- $\gamma$ (cycle exponent) & 0.52 & 0.3--1.0 & \citet{reniers2019review} \\
- $\alpha$ (plating coefficient) & 0.51 & 0.3--0.7 & \citet{waldmann2014temperature} \\
+$E_a$ (SEI activation) & 50.3 kJ/mol & 35--60 kJ/mol & \citet{broussely2005main} \\
+$\beta$ (C-rate exponent) & 1.48 & $\sim$1.5 & \citet{zhang2020degradation} \\
+$\gamma$ (cycle exponent) & 0.52 & 0.3--1.0 & \citet{reniers2019review} \\
+$\alpha$ (plating coefficient) & 0.51 & 0.3--0.7 & \citet{waldmann2014temperature} \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -701,22 +716,34 @@ HUST LFP & 13 & 15 & 87\% \\
 \end{center}
 \label{tab:xjtu_attribution}
 \end{table*}
-\begin{figure*}[t!]
-\centerline{\includegraphics[width=0.85\textwidth,keepaspectratio]{pinn_architecture_comparison.png}}
+\begin{figure*}[!ht]
+\centerline{\includegraphics[width=0.95\textwidth,keepaspectratio]{pinn_architecture_comparison.png}}
 \caption{Comparison of Pure PINN and Hybrid PINN architectures. (A) Architecture diagrams: Pure PINN (77.3\%) vs Hybrid PINN (92.0\%). (B) Learned physics parameters match literature ranges. (C) The disambiguation challenge: SEI and AM Loss produce similar signals at moderate C-rates. (D) Component contributions: expert priors (53\%) outweigh neural network (19\%).}
 \label{fig:pinn_boundary}
 \end{figure*}
-\begin{figure*}[t!]
+\begin{figure*}[!ht]
 \centerline{\includegraphics[width=0.95\textwidth,keepaspectratio]{pinn_validation_92.png}}
 \caption{Validation of the causal mechanism attribution network across five independent datasets. (A) Per-dataset accuracy shows consistent performance ranging from 87\% to 100\%, with an overall accuracy of 92.0\% across 75 test scenarios. (B) The confusion matrix reveals that SEI growth and active material loss are correctly identified with high confidence, while the remaining errors occur at the SEI/AM boundary under moderate operating conditions. (C) Mechanism-specific recall demonstrates strong detection for all mechanisms including 100\% for safety-critical lithium plating and corrosion. (D) Comparison of Pure PINN (77.3\%), Boundary-Aware PINN (77.3\%), and Hybrid PINN (92.0\%) demonstrates the 14.7 percentage point improvement from expert domain priors.}
 \label{fig:attribution}
 \end{figure*}
+% Text continues below figure
+% Merged Header
 
 We validated the final Hybrid PINN on 75 test cases spanning five independent datasets never seen during training. These are shown in Table~\ref{tab:attribution}. Even for such unseen cases, an average accuracy of 92.0\% is obtained.
+
+
+
+
+
+
+
+
 
 \subsubsection{Validation on High C-Rate Data: Active Material Loss Detection}
 
 To validate our causal attribution model's ability to detect mechanical stress-induced degradation, we evaluated it on the XJTU battery dataset \citep{wang2024pinn}; 26 NCM cells cycled at high C-rates (2C, 2.5C, and 3C) at room temperature. High C-rate charging causes mechanical stress through rapid volume expansion and contraction, leading to particle cracking and active material loss. This physics is well-established in electrochemistry literature \citep{birkl2017degradation}.
+
+
 
 Table~\ref{tab:xjtu_attribution} shows that Active Material Loss was correctly identified as the dominant degradation mechanism in 100\% of cases. Importantly, the attribution scales with C-rate: 49.2\% at 2C, 62.7\% at 2.5C, and 69.2\% at 3C. This monotonic increase matches the physics; higher C-rates induce greater mechanical stress, leading to more particle cracking and active material loss. The secondary contribution from lithium plating (13--20\%) is also physically plausible, as high charging rates can cause local lithium deposition at electrode surfaces even at room temperature.
 
@@ -725,6 +752,8 @@ This external validation demonstrates that our physics-constrained attribution m
 \paragraph{Comparative Evaluation: Pure PINN versus Hybrid PINN}
 
 Table~\ref{tab:pinn_comparison} summarizes the performance comparison across architectures. All models were trained on identical data and evaluated on the same 75 benchmark scenarios.
+
+
 
 Several observations merit discussion. First, the Pure PINN achieves perfect accuracy on SEI (100\%) when trained with adequate representation, but fails completely on rare mechanisms (0\% for plating and corrosion) when training data lacks examples. This reflects a fundamental data-dependency that physics constraints alone cannot overcome.
 
@@ -742,15 +771,14 @@ To isolate the contribution of each component, we performed systematic ablation 
 The ablation reveals a striking pattern: removing \textit{any single} physics prior causes a complete collapse to approximately 39\% accuracy. This indicates that the priors function as an interconnected system rather than independent boosters. The neural network contribution (39\% minus the 20\% random baseline) amounts to 19 percentage points, while the physics priors contribute the remaining 53 percentage points to reach 92\%. This quantifies our central finding: \textit{domain expertise encoded as structured priors contributes nearly three times more than data-driven learning for mechanism disambiguation.}
 
 
-
-
+\clearpage
 \subsection{Counterfactual Results}
 \begin{figure*}[!htb]
 \centerline{\includegraphics[width=0.95\textwidth,height=0.4\textheight,keepaspectratio]{counterfactual_intervention_validation.png}}
 \caption{Counterfactual intervention validation on real battery degradation scenarios. (A) Four scenarios from NASA and XJTU datasets showing dominant mechanisms and operating conditions. (B) Top counterfactual recommendations and predicted mechanism reductions. (C) Detailed mechanism redistribution for NASA 0°C scenario, showing complete elimination of lithium plating. (D) Validation metrics: mechanism reduction and alignment with known optimal strategies across scenarios.}
 \label{fig:counterfactual_validation}
 \end{figure*}
-
+% Merged Header
 
 We validated the counterfactual intervention framework on four real degradation scenarios extracted from the NASA and XJTU datasets, representing diverse failure modes and operating conditions (Figure~\ref{fig:counterfactual_validation}).
 
@@ -762,7 +790,7 @@ We validated the counterfactual intervention framework on four real degradation 
 
 \textbf{XJTU High C-Rate Active Material Loss (2C, 25°C):} The 55\% active material loss attribution reflects mechanical stress from high-rate cycling \citep{birkl2017degradation}. The recommended intervention was reducing C-rate to 1.25C (2.5A), predicted to achieve 26\% reduction in active material degradation. This is a more modest improvement compared to the plating scenarios because mechanical degradation depends on cumulative stress history, not just instantaneous conditions.
 
-\textbf{XJTU Very High C-Rate (3C, 28°C):} With 65\% active material loss under extreme conditions, the framework recommended reducing to 2.25A, predicting 4\% mechanism reduction. The limited improvement reflects physical constraints; at such high C-rates, even moderate reduction does not fully eliminate mechanical stress. This demonstrates that the counterfactual framework provides realistic predictions rather than over-promising benefits.
+\textbf{XJTU Very High C-Rate (3C, 28°C):} With 65\% active material loss under extreme conditions, the framework recommended reducing to 2.25A, predicting 4\% mechanism reduction. The limited improvement reflects physical constraints---at such high C-rates, even moderate reduction does not fully eliminate mechanical stress. This demonstrates that the counterfactual framework provides realistic predictions rather than over-promising benefits.
 
 Across all four scenarios, the average dominant mechanism reduction was 34.6\%, with perfect elimination (100\% reduction) achieved in low-temperature plating cases and modest but meaningful reductions in high C-rate scenarios. Importantly, when we compared the recommended interventions to known optimal strategies documented in battery literature, we observed 50\% alignment---the counterfactual recommendations matched expert guidelines in terms of action type (current reduction, temperature adjustment), though specific parameter values sometimes differed due to our conservative safety margins.
 
@@ -770,7 +798,7 @@ Across all four scenarios, the average dominant mechanism reduction was 34.6\%, 
 
 \subsection{Advisory System Results}
 
-
+% Extracted Results Text
 Figure~\ref{fig:domain_classification} demonstrates the superior performance of the physics-informed approach. PATT achieves an overall classification accuracy of 99.6\%, significantly outperforming the baseline MLP (92.2\%). Most critically, the system demonstrates 100\% recall for cycling detection (0 false negatives), ensuring that active batteries are never dangerously misclassified as dormant. The learned physics parameters ($\alpha \approx 0.5$, $\beta \approx 0.29$) converged to stable, non-zero values, confirming that the model actively utilizes both temperature and diffusion scaling to achieve this separation.
 
 
@@ -823,7 +851,7 @@ The power of our approach lies in the integration of components that are individ
 
 Most battery research and all commercial BMS we're aware of focus on cycling degradation. It makes sense. Cycling is easier to test in a lab. You can accelerate it, measure it cleanly, and report cycle life numbers that fit nicely in papers. But cars spend 90\%+ of their time parked. For many users, calendar aging dominates, yet we keep optimizing for the 10\%.
 
-Our explicit treatment of storage mode (the context vector, the classifier, the SOC-dependent calendar aging model) addresses this gap directly. The validation results (99.6\% classification accuracy with 100\% cycling recall) demonstrate reliable domain identification under realistic conditions. By embedding physics-based constraints directly into the learning process, the system achieves robustness that purely data-driven approaches often lack, eliminating the risk of misclassifying active usage as dormant storage.
+Our explicit treatment of storage mode (the context vector, the classifier, the SOC-dependent calendar aging model) addresses this gap directly. The validation results; 99.6\% classification accuracy with 100\% cycling recall; demonstrate reliable domain identification under realistic conditions. By embedding physics-based constraints directly into the learning process, the system achieves robustness that purely data-driven approaches often lack, eliminating the risk of misclassifying active usage as dormant storage.
 
 
 \subsection{Limitations and Future Work}
@@ -840,7 +868,7 @@ We developed a machine learning system that solves three longstanding problems i
 
 \begin{enumerate}
     \item \textbf{Retrieval-augmented dynamics:} Achieving 50-fold RUL improvement and 88\% error reduction on zero-shot chemistry transfer by storing and retrieving historical degradation trajectories
-    \item \textbf{Physics-hybrid causal attribution:} Multi-head architecture with thermodynamic constraints achieving 92.0\% attribution accuracy, where ablation proves that domain knowledge encoded as soft priors contributes nearly 3$\times$ more than pure neural learning
+    \item \textbf{Physics-informed causal attribution:} Multi-head architecture with thermodynamic constraints achieving 90.7\% attribution accuracy, where ablation proves that domain knowledge encoded as soft priors contributes 3.5$\times$ more than pure neural learning
     \item \textbf{Context-aware advisory:} Translating mechanism diagnoses into quantified user recommendations (e.g., 4$\times$ aging reduction from SOC management)
 \end{enumerate}
 

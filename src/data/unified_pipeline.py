@@ -37,6 +37,7 @@ from .tbsi_loader import TBSISunwodaLoader
 from .randomwalk_loader import RandomizedBatteryLoader
 from .panasonic_loader import Panasonic18650PFLoader
 from .storage_degradation_loader import StorageDegradationLoader
+from .xjtu_loader import XJTULoader
 from .dataset_registry import get_dataset_info, list_datasets
 
 import sys
@@ -223,6 +224,7 @@ class UnifiedDataPipeline:
         'storage_degradation': StorageDegradationLoader,
         'storage': StorageDegradationLoader,
         'storage_pln': StorageDegradationLoader,
+        'xjtu': XJTULoader,
     }
     
     def __init__(
@@ -283,13 +285,17 @@ class UnifiedDataPipeline:
                 print(f"[WARN] Unknown dataset: {ds_name}. Available: {list(self.LOADERS.keys())}")
                 continue
             
-            # Get data directory
-            ds_dir = self.data_root / ds_name
+            # Get data directory (with special cases)
+            if ds_name == 'xjtu':
+                ds_dir = self.data_root / "new_datasets" / "XJTU" / "Battery Dataset"
+            else:
+                ds_dir = self.data_root / ds_name
             
             if not ds_dir.exists() and create_synthetic_if_missing:
                 print(f"Creating synthetic {ds_name} data...")
                 ds_dir.mkdir(parents=True, exist_ok=True)
                 self._create_synthetic(ds_name, str(ds_dir))
+
             
             if ds_dir.exists():
                 # Create loader and load data

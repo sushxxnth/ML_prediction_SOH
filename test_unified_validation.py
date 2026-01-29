@@ -59,10 +59,12 @@ def load_unified_model():
 def make_context(temp_c: float, charge_c: float, discharge_c: float, 
                  soc: float = 0.5, mode: str = "cycling") -> np.ndarray:
     """Create normalized context vector."""
-    temp_norm = (temp_c + 20) / 80
+    # Temperature normalization: 25°C = 0, 5°C = -1, 45°C = 1
+    temp_norm = (temp_c - 25) / 20
     charge_norm = charge_c / 3.0
     discharge_norm = discharge_c / 4.0
-    mode_val = 1.0 if mode == "storage" else 0.5 if mode == "mixed" else 0.0
+    # Mode encoding: cycling=1.0, storage=0.0 (matches physics priors)
+    mode_val = 0.0 if mode == "storage" else 0.5 if mode == "mixed" else 1.0
     return np.array([temp_norm, charge_norm, discharge_norm, soc, 0.0, mode_val], dtype=np.float32)
 
 
