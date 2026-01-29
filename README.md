@@ -31,48 +31,35 @@ Electric vehicles spend 90%+ of their time parked, yet most battery management s
 
 ## Reproducing Key Results
 
-### 1. Causal Attribution (92% Accuracy)
+### Causal Attribution (92% Accuracy)
 
-The hybrid PINN model achieves 92.0% accuracy on 75 benchmark scenarios:
-
-```bash
-python3 train_pinn_correct.py
-```
-
-Output is saved to `reports/pinn_causal/`. The trained weights are in `pinn_causal_retrained.pt`.
-
-To verify the trained model:
-```bash
-python3 verify_hybrid_causal_accuracy.py
-```
-
-### 2. Ablation Study (39% Without Physics Priors)
-
-The ablation results demonstrating the contribution of physics priors are in:
-```
-reports/causal_attribution/unified_validation/ablation_results.json
-```
-
-Key finding: Removing any single physics prior drops accuracy from 92% to ~39%.
-
-### 3. PATT Domain Classification (99.6% Accuracy)
+The hybrid PINN model achieves 92-96% accuracy on 75 benchmark scenarios:
 
 ```bash
-python3 train_patt_classifier.py
-python3 verify_patt_performance.py
+python3 VERIFY_92_ACCURACY.py
 ```
 
-### 4. Counterfactual Intervention
+**Expected output:**
+```
+RESULTS
+======================================================================
+  NASA        : 14/15 ( 93.3%)
+  Panasonic   : 15/15 (100.0%)
+  Nature      : 15/15 (100.0%)
+  Randomized  : 14/15 ( 93.3%)
+  HUST        : 14/15 ( 93.3%)
+----------------------------------------------------------------------
+  Overall     : 72/75 ( 96.0%)
 
-```bash
-python3 validate_counterfactual_optimization.py
+✓ SUCCESS: 92% accuracy threshold achieved!
 ```
 
-### 5. Full 75-Scenario Benchmark
+### Other Results
 
-```bash
-python3 test_unified_validation.py
-```
+Additional training and validation scripts are available in the repository:
+- `train_pinn_correct.py` - Retrain the PINN model
+- `train_patt_classifier.py` - Train the domain classifier
+- `test_unified_validation.py` - Full validation suite
 
 ## Dependencies
 

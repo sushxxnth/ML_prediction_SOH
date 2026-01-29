@@ -19,6 +19,7 @@ from src.models.causal_attribution import (
     CausalExplainer,
     DegradationMechanism,
 )
+from src.models.pinn_causal_attribution import PINNCausalAttributionModel
 
 
 def get_test_scenarios():
@@ -180,8 +181,8 @@ def run_hybrid_validation():
     print("HYBRID PINN CAUSAL ATTRIBUTION VALIDATION (92% PROOF)")
     print("="*70)
     
-    # Create model
-    model = CausalAttributionModel(feature_dim=9, context_dim=6)
+    # Create model (must match architecture used for training)
+    model = PINNCausalAttributionModel(feature_dim=9, context_dim=6)
     
     # Load retrained weights
     weight_path = "reports/pinn_causal/pinn_causal_retrained.pt"
@@ -192,8 +193,12 @@ def run_hybrid_validation():
         print(f"\nError loading weights: {e}")
         return
     
-    # Create explainer with use_physics_only=False (HYBRID MODE)
-    explainer = CausalExplainer(model, use_physics_only=False)
+    # Set model to eval mode
+    model.eval()
+    
+    # Mechanism names for mapping indices to names
+    mechanism_names = ['SEI Layer Growth', 'Lithium Plating', 'Active Material Loss', 
+                       'Electrolyte Decomposition', 'Collector Corrosion']
     
     print("\nUsing Hybrid Mode: Neural Network + Physics Priors")
     
@@ -209,24 +214,37 @@ def run_hybrid_validation():
     base_features = np.random.randn(9).astype(np.float32) * 0.1 + 0.5
     base_features = np.clip(base_features, 0, 1)
     
-    for scenario in scenarios:
-        context = scenario['context']
-        expected = scenario['expected']
-        dataset = scenario['dataset']
-        
-        # Get prediction
-        result = explainer.explain(base_features, context)
-        predicted = result.primary_mechanism
-        
-        # Mapping readable names if necessary (CausalExplainer already returns readable strings)
-        is_correct = (predicted == expected)
-        
-        results_by_dataset[dataset]['total'] += 1
-        if is_correct:
-            results_by_dataset[dataset]['correct'] += 1
-        else:
-            results_by_dataset[dataset]['errors'].append({
-                'scenario': scenario['name'],
+    with torch.no_grad():
+        for scenario in scenarios:
+            context = scenario['context']
+            expected = scenario['expected']
+            dataset = scenario['dataset']
+            
+            # Prepare tensors
+            feat_t = torch.from_numpy(base_features).unsqueeze(0)
+            ctx_t = torch.from_numpy(context).unsqueeze(0)
+            
+            # Get prediction from model
+            outputs = model(feat_t, ctx_t)
+            attr_dict = outputs['attributions']
+            
+            # Stack attributions (dict of tensors -> single tensor)
+            attr_order = ['sei_growth', 'lithium_plating', 'am_loss', 'electrolyte', 'corrosion']
+            attr_values = torch.cat([attr_dict[k] for k in attr_order], dim=-1)
+            
+            # Get predicted mechanism (highest attribution)
+            pred_idx = attr_values.argmax(dim=-1).item()
+            predicted = mechanism_names[pred_idx]
+            
+            # Check correctness
+            is_correct = (predicted == expected)
+            
+            results_by_dataset[dataset]['total'] += 1
+            if is_correct:
+                results_by_dataset[dataset]['correct'] += 1
+            else:
+                results_by_dataset[dataset]['errors'].append({
+                    'scenario': scenario['name'],
                 'expected': expected,
                 'predicted': predicted,
             })

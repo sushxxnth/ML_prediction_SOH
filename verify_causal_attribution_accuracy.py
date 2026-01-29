@@ -26,6 +26,7 @@ from src.models.causal_attribution import (
     CausalExplainer,
     DegradationMechanism,
 )
+from src.models.pinn_causal_attribution import PINNCausalAttributionModel
 
 
 def get_test_scenarios():
