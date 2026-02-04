@@ -239,21 +239,6 @@ Chemical Engineering, AI & IT, IIT Delhi
 
 ---
 
-## Citation
-
-If this helps your research, we'd appreciate a citation:
-
-```bibtex
-@article{chandrashekar2026battery,
-  title={Extending Electric Vehicle Battery Life via Mechanism-Specific Causal Awareness},
-  author={Chandrashekar, Sushanth and Uke, Sarina and Kodamana, Hariprasad and Ramteke, Manojkumar},
-  journal={Computers and Chemical Engineering},
-  year={2026}
-}
-```
-
----
-
 ## License
 
 MIT License. Use it, modify it, ships products with it—we just ask for attribution.
