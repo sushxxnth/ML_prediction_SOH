@@ -23,7 +23,7 @@ Think of it as moving from "Check Engine Light" to "Your catalytic converter is 
 
 We created a complete battery health management system with four key capabilities:
 
-### 1. 🔮 Predictive (HERO Model)
+### 1. Predictive (HERO Model)
 - Predicts how much life your battery has left
 - Works across different battery chemistries without retraining (zero-shot)
 - **55% more accurate** than standard deep learning methods on new battery types
