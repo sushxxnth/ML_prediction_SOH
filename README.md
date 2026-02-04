@@ -241,7 +241,7 @@ Chemical Engineering, AI & IT, IIT Delhi
 
 ## License
 
-MIT License. Use it, modify it, ships products with it—we just ask for attribution.
+MIT License. Use it, modify it, ships products with it we just ask for attribution.
 
 ---
 
