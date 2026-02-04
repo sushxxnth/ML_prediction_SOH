@@ -5,7 +5,7 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-1.9+-ee4c2c.svg)](https://pytorch.org/)
 
 > **Paper**: "Extending Electric Vehicle Battery Life via Mechanism-Specific Causal Awareness"  
-> **Journal**: Computers and Chemical Engineering (Submitted)
+
 
 ---
 
