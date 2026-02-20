@@ -9,152 +9,130 @@
 
 ---
 
-## Why This Matters
+## Overview
 
-Here's the thing about batteries: most systems can tell you *when* they'll fail, but not *why*. If your EV battery is degrading faster than expected, is it because you're charging in the cold? Leaving it at 100% for too long? Driving aggressively? 
+This repository contains the official implementation of the Physics-Informed Battery Health Management framework. The proposed system extends beyond traditional Remaining Useful Life (RUL) prediction by providing mechanism-specific causal attribution and counterfactual optimization interventions. 
 
-This framework answers that question. It doesn't just predict remaining life—it diagnoses the specific electrochemical mechanism causing the problem and suggests how to fix it.
-
-Think of it as moving from "Check Engine Light" to "Your catalytic converter is failing due to lean fuel mixture - here's how to address it."
+The framework addresses a critical limitation in current Battery Management Systems (BMS): the inability to attribute capacity fade to specific underlying electrochemical degradation mechanisms (e.g., Solid Electrolyte Interphase (SEI) growth, lithium plating, active material loss) using only non-invasive operating data.
 
 ---
 
-## What We Built
+## Technical Contributions
 
-We created a complete battery health management system with four key capabilities:
+The framework comprises four integrated modules:
 
-### 1. Predictive (HERO Model)
-- Predicts how much life your battery has left
-- Works across different battery chemistries without retraining (zero-shot)
-- **55% more accurate** than standard deep learning methods on new battery types
-- *"I've never seen this exact battery before, but based on 3,979 similar cases, here's what's going to happen..."*
+### 1. Predictive Engine: Hybrid Estimation via Retrieval Optimization (HERO)
+- A retrieval-augmented RUL prediction architecture utilizing cross-attention over a memory bank of 3,979 degradation trajectories.
+- Demonstrates zero-shot generalization to unseen battery chemistries, achieving a 55% reduction in prediction error compared to standard sequential baselines.
 
-### 2. � Diagnostic (Hybrid PINN)
-- Identifies *which* degradation mechanism is the culprit
-- 92% accurate at pinpointing whether it's lithium plating, SEI growth, active material loss, etc.
-- Combines physics equations with expert knowledge
-- *"Your capacity drop isn't normal aging—it's 70% lithium plating from cold-weather charging."*
+### 2. Diagnostic Engine: Hybrid Physics-Informed Neural Network (PINN)
+- A multi-head causal attribution network bounded by electrochemical priors (Arrhenius kinetics, Tafel equations).
+- Achieves 92.0% accuracy in isolating the dominant degradation mechanism from macroscopic voltage/current/temperature time-series data.
 
-### 3. ⚡ Proactive (Early Warning)
-- Detects problems **99 cycles before failure** (that's 2-3 months for a typical EV)
-- 88.9% F1 score—catches 96% of failures with few false alarms
-- *"Your degradation just accelerated. We need to investigate."*
+### 3. Proactive Monitoring: Early Warning Engine
+- Detects the onset of nonlinear capacity fade and knee-point acceleration.
+- Achieves an 88.9% F1 score in predictive failure detection, providing an average lead time of 99 cycles prior to end-of-life.
 
-### 4. 💡 Actionable (Advisory System)
-- Generates specific, physics-based recommendations
-- "Reduce charge rate to 1.5A" beats "charge slower" every time
-- Tested on real NASA and XJTU battery data
-- *"Here's exactly what to change, and here's how much it will help."*
+### 4. Prescriptive Advisory: Counterfactual Optimizer
+- Simulates mechanism trajectories under hypothetical operating conditions using a differentiable physics proxy.
+- Recommends mathematically optimal, actionable interventions (e.g., specific current reductions, thermal adjustments) to explicitly mitigate the dominant degradation mechanism.
 
 ---
 
-## Quick Results
+## Benchmark Results
 
-| What We Measured | Result | What It Means |
-|------------------|--------|---------------|
-| Causal Diagnosis | 92% accuracy | 9 out of 10 times, we correctly identify why your battery is degrading |
-| Zero-Shot Learning | 55% error reduction | Works on battery types we've never seen before |
-| Early Warning | 99 cycles ahead | 2-3 months notice before your battery hits end-of-life |
-| HERO Prediction | 99% R² | Near-perfect SOH predictions across chemistries |
-| Domain Classification | 99.6% accuracy | Almost never confuses cycling with storage |
+| Metric | Result | Significance |
+|--------|--------|--------------|
+| **Causal Attribution Accuracy** | 92.0% | Verifiable mechanism diagnosis across 5 diverse datasets. |
+| **Zero-Shot RUL (MAE)** | 44.0 cycles | 55% error reduction on unseen NCA chemistry vs. LSTM baselines. |
+| **Early Warning Lead Time** | 99 cycles | Enables proactive intervention prior to failure onset. |
+| **SOH Prediction (HERO)** | 99.0% R² | Robust trajectory forecasting across chemistries. |
+| **Domain Classification (PATT)** | 99.2% | Accurately distinguishes storage (calendar) vs. cycling aging. |
 
 ---
 
-## Try It Yourself
-
-### Installation (2 minutes)
+## Installation
 
 ```bash
-# Clone and navigate
+# Clone the repository
 git clone https://github.com/yourusername/battery-health-causal.git
 cd battery-health-causal/ML_prediction_SOH
 
-# Install (just standard PyTorch + numpy stack)
-pip install torch numpy pandas matplotlib scikit-learn
-
-# Test installation
-python3 VERIFY_92_ACCURACY.py
+# Install required dependencies
+pip install torch numpy pandas matplotlib scikit-learn scipy
 ```
 
-###Reproducing Paper Results
+---
 
-#### Verify 92% Causal Accuracy
+## Reproducing Paper Results
 
-```bash
-python3 VERIFY_92_ACCURACY.py
-```
+The repository includes pre-trained weights and validation scripts to easily reproduce the quantitative claims presented in the manuscript.
 
-This runs our trained model on 75 test scenarios across 5 datasets. You should see:
-```
-══════════════════════════════════════════════════════════════════════
-RESULTS
-══════════════════════════════════════════════════════════════════════
-  NASA        : 14/15 ( 93.3%)
-  Panasonic   : 15/15 (100.0%)
-  Nature      : 15/15 (100.0%)
-  Randomized  : 14/15 ( 93.3%)
-  HUST        : 14/15 ( 93.3%)
-──────────────────────────────────────────────────────────────────────
-  Overall     : 69/75 ( 92.0%)
-```
+### Comprehensive Validation Suite
 
-#### Verify 44 Cycle Zero-Shot Accuracy
-
-```bash
-python3 verify_hero_zeroshot.py
-```
-
-This shows HERO achieving 44.0 cycle RUL MAE on NCA chemistry it's never seen before (55% better than LSTM baseline).
-
-#### All Claims at Once
+To validate all major quantitative claims (Table 4, Table 5, HERO performance, etc.) sequentially:
 
 ```bash
 python3 verify_all_paper_claims.py
 ```
 
-Validates every number in the paper. Takes ~30 seconds.
+### Specific Verifications
+
+**1. Causal Attribution Accuracy (92.0%)**
+Evaluates the trained Hybrid PINN across 75 benchmark scenarios.
+```bash
+python3 VERIFY_92_ACCURACY.py
+```
+
+**2. Zero-Shot Prediction Accuracy**
+Reproduces the 44-cycle MAE achieved by the HERO architecture on unseen datasets.
+```bash
+python3 verify_hero_zeroshot.py
+```
+
+**3. Counterfactual Ground-Truth Validation**
+Validates the simulator's intervention recommendations using real-world matched "natural experiments" from the NASA dataset.
+```bash
+python3 validate_counterfactual_ground_truth.py
+```
 
 ---
 
-## How It Works (Non-Technical)
+## Datasets
 
-**Problem**: Battery management systems track capacity (SOH) but not *why* it's dropping.
+The models were trained and validated on a comprehensive aggregation of publicly available datasets encompassing four lithium-ion chemistries (LCO, NCM, NCA, LFP) and diverse operating conditions (-40°C to 50°C, 0.5C to 8C rates):
 
-**Our Solution**: Three neural networks working together:
-
-1. **HERO** looks through a library of 3,979 battery life stories and finds similar cases. "Your battery looks like these 5—here's what happened to them."
-
-2. **Hybrid PINN** applies physics equations to figure out the mechanism. "Based on your temperature, charging rate, and SOH, this is lithium plating."
-
-3. **PATT** knows whether you're driving or parked, because recommendations differ drastically. "You're in storage mode—optimize for calendar aging, not cycling."
-
-Then the system combines everything: *"In 99 cycles you'll hit 80% capacity. The main cause is SEI growth (60%) and plating (25%). Park at 50% SOC instead of 90% to cut SEI growth by 40%."*
+1. **NASA Ames Prognostics Data Repository** (34 cells)
+2. **CALCE Battery Research Group** (18 cells)
+3. **Oxford Battery Degradation Dataset** (8 cells)
+4. **TJU (Tongji University)** (40 cells)
+5. **XJTU Battery Dataset** (26 cells)
+6. **Stanford Calendar Aging Dataset** (60 cells)
 
 ---
 
-## Project Structure
+## Repository Structure
 
 ```
 ML_prediction_SOH/
-├── verify_hero_zeroshot.py        #  Reproduces 44 MAE result  
-├── VERIFY_92_ACCURACY.py           #  Reproduces 92% causal accuracy
-├── verify_all_paper_claims.py     #  Validates all paper claims
 ├── src/
 │   ├── models/
-│   │   ├── pinn_causal_attribution.py   # Physics-informed diagnosis (92%)
-│   │   ├── rad_model.py                  # HERO prediction engine
-│   │   └── physics_aware_transformer.py  # PATT classifier (99.6%)
+│   │   ├── pinn_causal_attribution.py     # Diagnostic Engine
+│   │   ├── rad_model.py                   # HERO Predictive Engine
+│   │   └── physics_aware_transformer.py   # PATT Domain Classifier
 │   ├── optimization/
-│   │   └── counterfactual_intervention.py  # "What if" simulator
+│   │   └── counterfactual_intervention.py # Prescriptive Advisory
 │   ├── advisory/
-│   │   └── warning_engine.py             # Early warning system
-│   └── data/
-│       └── unified_pipeline.py           # Data loaders
-└── reports/                         # Pre-trained weights & results
-    ├── pinn_causal/                # Causal model weights
-    ├── hero_model/                 # HERO weights
-    ├── patt_classifier/            # Domain classifier
-    └── zeroshot_baseline_comparison.json  # HERO 44 MAE results
+│   │   └── warning_engine.py              # Early Warning System
+│   └── data/                              # Dataloaders and pipelines
+├── scripts/                               # Plotting and figure generation utilities
+├── figures/                               # Generated paper visualizations
+├── reports/                               # Pre-trained model weights and JSON results
+│   ├── pinn_causal/
+│   ├── hero_model/
+│   └── patt_classifier/
+├── verify_all_paper_claims.py             # Main reproducibility script
+└── VERIFY_92_ACCURACY.py                  # PINN evaluation script
 ```
 
 ---
@@ -237,22 +215,26 @@ Chemical Engineering & AI, IIT Delhi
 Chemical Engineering, AI & IT, IIT Delhi  
 📧 mcramteke@chemical.iitd.ac.in
 
+## Citation
+
+If you utilize this code or find the framework useful in your research, please cite our paper:
+
+```bibtex
+@article{chandrashekar2026battery,
+  title={Extending Electric Vehicle Battery Life via Mechanism-Specific Causal Awareness},
+  author={Chandrashekar, Sushanth and Uke, Sarina and Kodamana, Hariprasad and Ramteke, Manojkumar},
+  journal={Computers and Chemical Engineering},
+  year={2026}
+}
+```
 ---
 
 ## License
 
-MIT License. Use it, modify it, ships products with it we just ask for attribution.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
----
+## Contact
 
-## Questions?
-
-- **"Does this work on my specific battery?"** Probably! We tested on 5 different chemistries. If it's a lithium-ion battery, the physics is the same.
-- **"Can I deploy this in production?"** The models are production-ready. You'd need to integrate with your BMS, but the prediction and diagnosis logic is solid.
-- **"What if I want to add a new degradation mechanism?"** Add it to the PINN architecture in `src/models/pinn_causal_attribution.py`. The framework is extensible.
-
-Reach out to the corresponding authors for collaborations or questions!
-
----
-
-**⭐ If you find this useful, star the repo so others can find it too!**
+For questions regarding the methodology or codebase, please contact the corresponding authors:
+- **Hariprasad Kodamana**: hkodamana@iitd.ac.in
+- **Manojkumar Ramteke**: mcramteke@chemical.iitd.ac.in
