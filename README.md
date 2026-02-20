@@ -70,18 +70,18 @@ The repository includes pre-trained weights and validation scripts to easily rep
 
 ### Comprehensive Validation Suite
 
-To validate all major quantitative claims (Table 4, Table 5, HERO performance, etc.) sequentially:
+To validate all major quantitative claims sequentially as presented in the paper, we provide a unified reproducibility script for reviewers:
 
 ```bash
-python3 verify_all_paper_claims.py
+python3 REPRODUCE_PAPER_CLAIMS.py
 ```
 
 ### Specific Verifications
 
-**1. Causal Attribution Accuracy (92.0%)**
+**1. Causal Attribution Accuracy (96.0%)**
 Evaluates the trained Hybrid PINN across 75 benchmark scenarios.
 ```bash
-python3 VERIFY_92_ACCURACY.py
+python3 VERIFY_96_ACCURACY.py
 ```
 
 **2. Zero-Shot Prediction Accuracy**
@@ -131,7 +131,7 @@ ML_prediction_SOH/
 │   ├── pinn_causal/
 │   ├── hero_model/
 │   └── patt_classifier/
-├── verify_all_paper_claims.py             # Main reproducibility script
+├── REPRODUCE_PAPER_CLAIMS.py              # Main reproducibility script for reviewers
 └── VERIFY_96_ACCURACY.py                  # PINN evaluation script
 ```
 
