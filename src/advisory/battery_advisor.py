@@ -25,6 +25,7 @@ from src.advisory.suggestion_generator import (
     SuggestionGenerator, Suggestion, UsageContext, DegradationMode,
     format_suggestions_for_display
 )
+from src.models.pinn_causal_attribution import PINNCausalAttributionModel, DegradationMechanism
 
 
 @dataclass
@@ -53,6 +54,9 @@ class BatteryHealthReport:
     
     # Confidence
     confidence: float
+    
+    # NEW: Detailed Diagnostics
+    mechanism_attributions: Optional[Dict[str, float]] = None
 
 
 class BatteryAdvisor:
@@ -60,7 +64,10 @@ class BatteryAdvisor:
     Main advisory system that provides user-facing battery health insights.
     
     Example usage:
-        advisor = BatteryAdvisor()
+        advisor = BatteryAdvisor(
+            unified_path="reports/causal_attribution/causal_model.pt",
+            pinn_path="reports/pinn_causal/pinn_causal_retrained.pt"
+        )
         report = advisor.analyze(
             features=battery_features,
             context=battery_context,
@@ -70,31 +77,55 @@ class BatteryAdvisor:
         print(report.top_recommendation)
     """
     
-    def __init__(self, model_path: Optional[str] = None, device: str = 'cpu'):
+    def __init__(self, unified_path: Optional[str] = None, pinn_path: Optional[str] = None, device: str = 'cpu'):
         """
         Initialize the battery advisor.
         
         Args:
-            model_path: Path to trained model weights (optional)
+            unified_path: Path to unified model weights (SOH/RUL)
+            pinn_path: Path to PINN causal model weights (Diagnostics)
             device: Computation device
         """
         self.device = device
         self.warning_engine = WarningEngine()
         self.suggestion_generator = SuggestionGenerator()
         
-        # Load model if path provided
+        # Load models if paths provided
         self.model = None
-        if model_path and Path(model_path).exists():
-            self._load_model(model_path)
-    
-    def _load_model(self, model_path: str):
-        """Load the unified degradation model."""
-        from src.train.train_phase2_balanced import BalancedUnifiedModel
+        self.pinn_model = None
         
-        self.model = BalancedUnifiedModel().to(self.device)
-        state_dict = torch.load(model_path, map_location=self.device, weights_only=False)
-        self.model.load_state_dict(state_dict)
-        self.model.eval()
+        if unified_path and Path(unified_path).exists():
+            self._load_unified_model(unified_path)
+        
+        if pinn_path and Path(pinn_path).exists():
+            self._load_pinn_model(pinn_path)
+    
+    def _load_unified_model(self, model_path: str):
+        """Load the unified degradation model for SOH (from CausalAttributionModel)."""
+        from src.models.causal_attribution import CausalAttributionModel
+        self.model = CausalAttributionModel(feature_dim=9, context_dim=6).to(self.device)
+        try:
+            state_dict = torch.load(model_path, map_location=self.device, weights_only=False)
+            self.model.load_state_dict(state_dict)
+            self.model.eval()
+            print(f"✓ Loaded Unified SOH model from {model_path}")
+        except Exception as e:
+            print(f"✗ Error loading unified model: {e}")
+            self.model = None
+
+    def _load_pinn_model(self, model_path: str):
+        """Load the PINN causal attribution model for diagnostics."""
+        from src.models.pinn_causal_attribution import PINNCausalAttributionModel
+        self.pinn_model = PINNCausalAttributionModel(feature_dim=9, context_dim=6).to(self.device)
+        try:
+            # Note: PINN weights are often saved with weights_only=True
+            state_dict = torch.load(model_path, map_location=self.device, weights_only=False)
+            self.pinn_model.load_state_dict(state_dict)
+            self.pinn_model.eval()
+            print(f"✓ Loaded PINN Causal model from {model_path}")
+        except Exception as e:
+            print(f"✗ Error loading PINN model: {e}")
+            self.pinn_model = None
     
     def analyze(
         self,
@@ -117,19 +148,24 @@ class BatteryAdvisor:
         """
         # Predict SOH and mode using model
         if self.model is not None:
-            soh, rul_norm, mode_pred = self._predict(features, context, chem_id)
+            soh, rul, mode_pred = self._predict(features, context, chem_id)
         else:
             # Fallback if no model loaded
             soh = 0.85
-            rul_norm = 0.5
-            mode_pred = int(context[-1]) if len(context) > 0 else 0
+            rul = 400
+            mode_pred = int(context[-1]) if len(context) > 5 else 1  # Default to cycling
         
-        # Convert predictions
-        rul_cycles = int(rul_norm * 500)  # Assume 500 cycles max
-        mode = DegradationMode.STORAGE if mode_pred == 1 else DegradationMode.CYCLING
+        # Convert predictions (Causal Model Convention: 1=Cycling, 0=Storage)
+        rul_cycles = int(rul)
+        mode = DegradationMode.CYCLING if mode_pred == 1 else DegradationMode.STORAGE
         
         # Get warning
         warning_result = self.warning_engine.evaluate(soh, rul_cycles, soh_history)
+        
+        # Run PINN Causal Attribution if available
+        mechanism_attributions = None
+        if self.pinn_model is not None:
+            mechanism_attributions = self._run_causal_diag(features, context)
         
         # Create usage context for suggestions
         usage_context = UsageContext(
@@ -139,7 +175,8 @@ class BatteryAdvisor:
             avg_soc=context[3] if len(context) > 3 else 0.5,
             charge_rate=context[1] if len(context) > 1 else 0.5,
             discharge_rate=context[2] if len(context) > 2 else 0.5,
-            deep_discharge_freq=0.1  # Estimated
+            deep_discharge_freq=0.1,  # Estimated
+            mechanism_attributions=mechanism_attributions
         )
         
         # Generate suggestions
@@ -168,7 +205,8 @@ class BatteryAdvisor:
             degradation_rate=warning_result.degradation_rate,
             rate_status=rate_status,
             cycles_to_warning=warning_result.cycles_to_warning_zone,
-            confidence=0.91  # From our validation
+            confidence=0.91,  # From our validation
+            mechanism_attributions=mechanism_attributions
         )
     
     def _predict(
@@ -181,15 +219,35 @@ class BatteryAdvisor:
         with torch.no_grad():
             feat_t = torch.tensor(features, dtype=torch.float32).unsqueeze(0).to(self.device)
             ctx_t = torch.tensor(context, dtype=torch.float32).unsqueeze(0).to(self.device)
-            chem_t = torch.tensor([chem_id], dtype=torch.long).to(self.device)
             
-            soh_pred, rul_pred, domain_logits, _ = self.model(feat_t, ctx_t, chem_t)
+            # Use CausalAttributionModel for SOH
+            outputs = self.model(feat_t, ctx_t)
+            soh = float(outputs['soh'].item())
             
-            soh = float(soh_pred.squeeze().cpu())
-            rul = float(rul_pred.squeeze().cpu())
-            mode = int(torch.argmax(domain_logits, dim=1).cpu())
+            # Estimate RUL (Fallback as base model lacks RUL head)
+            fade = 1.0 - soh
+            if fade < 0.001:
+                rul = 1000.0
+            else:
+                rul = max(0.0, (soh - 0.8) / 0.0004)
+            
+            # Mode from context (Causal Convention: 1=Cycling, 0=Storage)
+            mode = int(context[5]) if len(context) > 5 else 1
             
             return soh, rul, mode
+
+    def _run_causal_diag(self, features: np.ndarray, context: np.ndarray) -> Dict[str, float]:
+        """Run PINN causal diagnostic."""
+        with torch.no_grad():
+            feat_t = torch.tensor(features, dtype=torch.float32).unsqueeze(0).to(self.device)
+            ctx_t = torch.tensor(context, dtype=torch.float32).unsqueeze(0).to(self.device)
+            
+            output = self.pinn_model(feat_t, ctx_t)
+            attributions = {
+                mech: float(output['attributions'][mech].item())
+                for mech in output['attributions']
+            }
+            return attributions
     
     def format_report(self, report: BatteryHealthReport) -> str:
         """Format report for display."""

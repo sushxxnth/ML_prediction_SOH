@@ -38,6 +38,7 @@ from .randomwalk_loader import RandomizedBatteryLoader
 from .panasonic_loader import Panasonic18650PFLoader
 from .storage_degradation_loader import StorageDegradationLoader
 from .xjtu_loader import XJTULoader
+from .tju_loader import TJULoader
 from .dataset_registry import get_dataset_info, list_datasets
 
 import sys
@@ -225,6 +226,7 @@ class UnifiedDataPipeline:
         'storage': StorageDegradationLoader,
         'storage_pln': StorageDegradationLoader,
         'xjtu': XJTULoader,
+        'tju': TJULoader,
     }
     
     def __init__(
@@ -288,6 +290,8 @@ class UnifiedDataPipeline:
             # Get data directory (with special cases)
             if ds_name == 'xjtu':
                 ds_dir = self.data_root / "new_datasets" / "XJTU" / "Battery Dataset"
+            elif ds_name == 'tju':
+                ds_dir = self.data_root / "new_datasets" / "RUL-Mamba" / "data" / "TJU data"
             else:
                 ds_dir = self.data_root / ds_name
             
@@ -992,4 +996,3 @@ if __name__ == '__main__':
     print("\n" + "="*60)
     print("All tests passed!")
     print("="*60)
-

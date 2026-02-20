@@ -53,8 +53,10 @@ class WarningEngine:
     }
     
     # Degradation rate thresholds (per cycle)
-    FAST_DEGRADATION_RATE = 0.005  # 0.5% per cycle
+    # Paper-aligned: 0.17% per cycle triggers accelerated aging
+    FAST_DEGRADATION_RATE = 0.0017  # 0.17% per cycle
     NORMAL_DEGRADATION_RATE = 0.001  # 0.1% per cycle
+    SLOPE_WINDOW = 20  # 20-cycle window for slope estimation
     
     def __init__(self, warning_soh: float = 0.80, critical_soh: float = 0.70):
         """
@@ -131,8 +133,9 @@ class WarningEngine:
         if soh_history is None or len(soh_history) < 2:
             return 0.0
         
-        # Use last 10 measurements for trend
-        recent = soh_history[-10:] if len(soh_history) >= 10 else soh_history
+        # Use last 20 measurements for trend (paper-aligned)
+        window = self.SLOPE_WINDOW
+        recent = soh_history[-window:] if len(soh_history) >= window else soh_history
         
         # Linear regression for trend
         n = len(recent)

@@ -9,6 +9,7 @@ Provides mode-specific suggestions based on:
 
 from enum import Enum
 from dataclasses import dataclass
+from src.models.pinn_causal_attribution import PINNCausalAttributionModel, DegradationMechanism
 from typing import List, Optional, Dict, Tuple
 
 #RUL
@@ -214,6 +215,7 @@ class UsageContext:
     planned_trip_km: Optional[float] = None  # Planned trip distance in km
     current_range_km: Optional[float] = None  # Current available range in km
     max_range_km: Optional[float] = None  # Maximum range at 100% SOC
+    mechanism_attributions: Optional[Dict[str, float]] = None  # NEW: Causal mechanism scores
 
 
 class SuggestionGenerator:
@@ -247,16 +249,20 @@ class SuggestionGenerator:
         """
         suggestions = []
         
-        # Mode-specific suggestions
+        # PRIORITY 1: Causal-Directed suggestions (Dynamic advice from PINN)
+        # These are physics-based diagnostics and should take priority
+        suggestions.extend(self._causal_suggestions(context))
+        
+        # PRIORITY 2: Mode-specific suggestions
         if context.mode == DegradationMode.CYCLING:
             suggestions.extend(self._cycling_suggestions(context))
         else:
             suggestions.extend(self._storage_suggestions(context))
         
-        # Driver profile suggestions (NEW)
+        # Driver profile suggestions
         suggestions.extend(self._driver_profile_suggestions(context))
         
-        # Trip planning suggestions (NEW)
+        # Trip planning suggestions
         suggestions.extend(self._trip_planning_suggestions(context))
         
         # General suggestions (apply to both modes)
@@ -491,6 +497,66 @@ class SuggestionGenerator:
         
         return suggestions
     
+    def _causal_suggestions(self, context: UsageContext) -> List[Suggestion]:
+        """Generate suggestions based on diagnosed degradation mechanisms."""
+        suggestions = []
+        
+        if not context.mechanism_attributions:
+            return suggestions
+            
+        # Extract mechanisms (sorted by contribution)
+        sorted_mechs = sorted(context.mechanism_attributions.items(), key=lambda x: x[1], reverse=True)
+        top_mech, confidence = sorted_mechs[0]
+        
+        if confidence < 0.2:  # Ignorable confidence
+            return suggestions
+            
+        # Dynamic priority: HIGH when confidence > 80%, MEDIUM otherwise
+        # This ensures high-confidence diagnoses take precedence over generic suggestions
+        dynamic_priority = SuggestionPriority.HIGH if confidence > 0.8 else SuggestionPriority.MEDIUM
+        
+        # 1. Lithium Plating (Always HIGH - safety critical)
+        if (top_mech == 'lithium_plating' or top_mech == DegradationMechanism.LITHIUM_PLATING) and confidence > 0.4:
+            suggestions.append(Suggestion(
+                title="URGENT: Lithium Plating Detected",
+                description=f"Our physics model is {confidence:.0%} certain that lithium plating is damaging your battery. "
+                            "This is likely due to charging in cold weather or at excessively high speeds.",
+                impact="If ignored, can lead to permanent capacity loss or safety risks in 50-100 cycles.",
+                priority=SuggestionPriority.HIGH  # Always HIGH for safety
+            ))
+            
+        # 2. Active Material (AM) Loss - Dynamic priority based on confidence
+        if (top_mech == 'am_loss' or top_mech == DegradationMechanism.ACTIVE_MATERIAL_LOSS) and confidence > 0.4:
+            suggestions.append(Suggestion(
+                title="Action Required: Structural Aging (AM Loss)",
+                description=f"Structural degradation ({confidence:.0%} confidence) detected. "
+                            "Commonly caused by deep discharges and high-power acceleration events.",
+                impact="Slows down charging speeds and reduces total energy capacity.",
+                priority=dynamic_priority
+            ))
+            
+        # 3. SEI Growth - Dynamic priority based on confidence
+        if (top_mech == 'sei_growth' or top_mech == DegradationMechanism.SEI_GROWTH) and confidence > 0.4:
+            suggestions.append(Suggestion(
+                title="Notice: Passivation Layer Expansion (SEI)",
+                description=f"Accelerated chemical aging ({confidence:.0%} confidence) detected. "
+                            "This usually happens when the battery is stored at high temperatures or high charge levels.",
+                impact="Normal aging process, but can be slowed by keeping battery cooler.",
+                priority=dynamic_priority
+            ))
+            
+        # 4. Collector Corrosion (Always HIGH - terminal condition)
+        if (top_mech == 'corrosion' or top_mech == DegradationMechanism.COLLECTOR_CORROSION) and confidence > 0.3:
+            suggestions.append(Suggestion(
+                title="CRITICAL: Internal Corrosion Warning",
+                description=f"Signs of copper dissolution/corrosion detected ({confidence:.0%} confidence). "
+                            "This is often triggered by leaving the battery at 0% for extended periods.",
+                impact="High risk of internal short circuit and complete battery failure.",
+                priority=SuggestionPriority.HIGH  # Always HIGH for safety
+            ))
+            
+        return suggestions
+
     def _general_suggestions(self, context: UsageContext) -> List[Suggestion]:
         """Generate suggestions that apply to both modes."""
         suggestions = []
