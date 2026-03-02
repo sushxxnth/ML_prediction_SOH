@@ -66,15 +66,11 @@ def generate_figure():
     # ── (a) Input: REAL XJTU data ──
     ax_a = fig.add_subplot(gs[0, 0])
     ax_a.plot(cycles, soh, color=N_BLUE, lw=2, label='SOH (%)', zorder=3)
-    ax_a_twin = ax_a.twinx()
-    ax_a_twin.plot(cycles, temps_mean, color=N_RED, lw=1, ls='--', alpha=0.5, label='Temp (°C)', zorder=2)
-    
+    # No temperature twin-axis in panel (a) — it converged with the degraded SOH line near 80%
     ax_a.set_title('(a) Input: XJTU Cell (25°C, 2C Cycling)', loc='left', pad=12)
     ax_a.set_xlabel('Cycle Number', fontweight='bold')
     ax_a.set_ylabel('State of Health (%)', color=N_BLUE, fontweight='bold')
-    ax_a_twin.set_ylabel('Temperature (°C)', color=N_RED, fontweight='bold')
     ax_a.set_ylim(75, 105)
-    ax_a_twin.set_ylim(20, 40)
     ax_a.grid(True, zorder=0)
 
     # Knee point around cycle 250
@@ -85,10 +81,7 @@ def generate_figure():
                  fontsize=9, ha='center', weight='semibold',
                  bbox=dict(boxstyle='round,pad=0.3', fc='white', ec='none', alpha=0.8))
     ax_a.axvspan(cycles[knee_idx], cycles[-1], color=N_ORANGE, alpha=0.08)
-    
-    lines_a, labels_a = ax_a.get_legend_handles_labels()
-    lines_t, labels_t = ax_a_twin.get_legend_handles_labels()
-    ax_a.legend(lines_a + lines_t, labels_a + labels_t, fontsize=7, loc='lower left', framealpha=0.9)
+    ax_a.legend(fontsize=7, loc='lower left', framealpha=0.9)
     ax_a.text(0.5, -0.18, 'Data flows to all stages \u25BC', transform=ax_a.transAxes,
              ha='center', fontsize=8, weight='bold', color=N_GRAY)
 
@@ -112,7 +105,18 @@ def generate_figure():
     ax_b.set_ylabel('State of Health (%)', fontweight='bold')
     ax_b.set_ylim(75, 105)
     ax_b.grid(True, zorder=0)
-    ax_b.legend(fontsize=6.5, loc='lower left', framealpha=0.9)
+
+    # Temperature on right axis — distinct amber colour so it can't be confused with the red-dashed HERO line
+    T_COLOR = '#E87722'  # amber-orange: clearly distinct from N_RED (HERO Prediction) and N_BLUE (SOH)
+    ax_b_twin = ax_b.twinx()
+    ax_b_twin.plot(cycles, temps_mean, color=T_COLOR, lw=1.5, ls=(0,(4,2)), alpha=0.9, label='Temp (°C)', zorder=2)
+    ax_b_twin.set_ylabel('Temperature (°C)', color=T_COLOR, fontweight='bold')
+    ax_b_twin.set_ylim(18, 42)  # tight around real 25-33 °C range → temp sits at bottom 30-60% of right axis
+    ax_b_twin.yaxis.set_tick_params(labelcolor=T_COLOR)
+
+    lines_b, labels_b = ax_b.get_legend_handles_labels()
+    lines_bt, labels_bt = ax_b_twin.get_legend_handles_labels()
+    ax_b.legend(lines_b + lines_bt, labels_b + labels_bt, fontsize=6.5, loc='lower left', framealpha=0.9)
     
     # Metrics — consistent with paper's overall HERO performance
     metrics = 'SOH MAE: 0.69%\nR\u00b2: 0.990\nRUL MAE: 16.2 cycles'
