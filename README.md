@@ -63,11 +63,25 @@ pip install torch numpy pandas matplotlib scikit-learn scipy
 
 ## Reproducing Paper Results
 
-The repository includes pre-trained weights and validation scripts to easily reproduce the quantitative claims presented in the manuscript.
+The repository includes pre-trained weights and validation scripts to reproduce all quantitative claims in the manuscript. Model weights are hosted as a [GitHub Release](https://github.com/sushxxnth/ML_prediction_SOH/releases/tag/v1.0.0) to keep the repository lightweight.
 
-### Comprehensive Validation Suite
+### Setup (one-time, after cloning)
 
-To validate all major quantitative claims sequentially as presented in the paper, we provide a unified reproducibility script for reviewers:
+```bash
+# Install dependencies
+pip install torch numpy pandas matplotlib scikit-learn scipy
+
+# Download pre-trained weights and result files (~1 MB)
+python3 download_weights.py
+```
+
+This installs the following into `reports/` (gitignored, local only):
+- `pinn_causal_retrained.pt` — Hybrid PINN (96.0% causal accuracy)
+- `patt_best.pt` — PATT domain classifier (99.6% accuracy)
+- `hero_model.pt` — HERO prediction model (SOH R²=99%, RUL MAE=44 cycles)
+- Verification result JSON files
+
+### Verify all paper claims
 
 ```bash
 python3 REPRODUCE_PAPER_CLAIMS.py
@@ -76,19 +90,16 @@ python3 REPRODUCE_PAPER_CLAIMS.py
 ### Specific Verifications
 
 **1. Causal Attribution Accuracy (96.0%)**
-Evaluates the trained Hybrid PINN across 75 benchmark scenarios.
 ```bash
 python3 VERIFY_96_ACCURACY.py
 ```
 
-**2. Zero-Shot Prediction Accuracy**
-Reproduces the 44-cycle MAE achieved by the HERO architecture on unseen datasets.
+**2. Zero-Shot Prediction (HERO, 44-cycle MAE)**
 ```bash
 python3 verify_hero_zeroshot.py
 ```
 
 **3. Counterfactual Ground-Truth Validation**
-Validates the simulator's intervention recommendations using real-world matched "natural experiments" from the NASA dataset.
 ```bash
 python3 validate_counterfactual_ground_truth.py
 ```
