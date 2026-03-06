@@ -55,9 +55,6 @@ The framework comprises four integrated modules:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/battery-health-causal.git
-cd battery-health-causal/ML_prediction_SOH
-
 # Install required dependencies
 pip install torch numpy pandas matplotlib scikit-learn scipy
 ```
