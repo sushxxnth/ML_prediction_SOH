@@ -157,19 +157,16 @@ We didn't just test on one dataset. We used 5 independent sources with different
 
 ### HERO: Hybrid Estimation via Retrieval Optimization
 - **What**: Retrieval-augmented RUL prediction with cross-attention
-- **Why it's cool**: First battery model with retrieval—learns from every battery it's ever seen
 - **Performance**: 99% R² on SOH, 55% better than baselines on new chemistries
 - **Weights**: `reports/fleet_rad/rad_finetuned_best.pt`
 
 ### Hybrid PINN: Physics-Informed Neural Network with Expert Priors
 - **What**: 5-head network that attributes capacity loss to specific mechanisms
-- **Why it's cool**: Combines physics equations with domain expert knowledge
 - **Performance**: 96% accuracy (expert priors add 14.7 percentage points!)
 - **Weights**: `reports/pinn_causal/pinn_causal_retrained.pt`
 
 ### PATT: Physics-Aware Temporal Transformer
 - **What**: Classifies whether the battery is being used or stored
-- **Why it's cool**: Learns Arrhenius kinetics and diffusion—physics embeddings!
 - **Performance**: 99.6% accuracy, 100% recall on cycling (never misses active use)
 - **Weights**: `reports/patt_classifier/patt_model.pt`
 
@@ -215,19 +212,6 @@ Chemical Engineering & AI, IIT Delhi
 Chemical Engineering, AI & IT, IIT Delhi  
 📧 mcramteke@chemical.iitd.ac.in
 
-## Citation
-
-If you utilize this code or find the framework useful in your research, please cite our paper:
-
-```bibtex
-@article{chandrashekar2026battery,
-  title={Extending Electric Vehicle Battery Life via Mechanism-Specific Causal Awareness},
-  author={Chandrashekar, Sushanth and Uke, Sarina and Kodamana, Hariprasad and Ramteke, Manojkumar},
-  journal={Computers and Chemical Engineering},
-  year={2026}
-}
-```
----
 
 ## License
 
