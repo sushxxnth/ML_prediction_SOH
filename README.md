@@ -4,7 +4,7 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-1.9+-ee4c2c.svg)](https://pytorch.org/)
 
-> **Paper**: "Extending Electric Vehicle Battery Life via Mechanism-Specific Causal Awareness"  
+> **Paper**: "Analyzing Degradation and Extending Life of Electric Vehicle Batteries using Physics-Aware Transformers"  
 
 
 ---
