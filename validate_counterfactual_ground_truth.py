@@ -61,9 +61,7 @@ from src.optimization.counterfactual_intervention import (
 )
 
 
-# =============================================================================
 # Data Loading
-# =============================================================================
 
 def load_capacity_trajectory(mat_path: str) -> dict:
     """
@@ -221,9 +219,7 @@ def compute_degradation_rate(capacities: np.ndarray) -> dict:
     }
 
 
-# =============================================================================
 # Ground-Truth Experiments
-# =============================================================================
 
 def run_experiment_1_temperature():
     """
@@ -245,13 +241,13 @@ def run_experiment_1_temperature():
     fact_metrics = compute_degradation_rate(factual['capacities'])
     gt_metrics = compute_degradation_rate(ground_truth['capacities'])
     
-    print(f"\n  📊 B0029 (43°C): {fact_metrics['rate_pct_per_cycle']:.4f} %SOH/cycle "
+    print(f"\n   B0029 (43°C): {fact_metrics['rate_pct_per_cycle']:.4f} %SOH/cycle "
           f"({fact_metrics['total_fade_pct']:.1f}% total fade over {fact_metrics['n_cycles']} cycles)")
-    print(f"  📊 B0033 (24°C): {gt_metrics['rate_pct_per_cycle']:.4f} %SOH/cycle "
+    print(f"   B0033 (24°C): {gt_metrics['rate_pct_per_cycle']:.4f} %SOH/cycle "
           f"({gt_metrics['total_fade_pct']:.1f}% total fade over {gt_metrics['n_cycles']} cycles)")
     
     rate_ratio = fact_metrics['rate_pct_per_cycle'] / max(gt_metrics['rate_pct_per_cycle'], 1e-8)
-    print(f"  📊 Actual rate ratio: {rate_ratio:.2f}x (43°C is {rate_ratio:.2f}x faster)")
+    print(f"   Actual rate ratio: {rate_ratio:.2f}x (43°C is {rate_ratio:.2f}x faster)")
     
     # Run counterfactual simulator
     simulator = CounterfactualSimulator()
@@ -287,7 +283,7 @@ def run_experiment_1_temperature():
     predicted_rate_ratio = 1 / max(1 - total_reduction, 0.1)
     ratio_error = abs(predicted_rate_ratio - rate_ratio) / rate_ratio * 100
     
-    print(f"\n  🔮 Simulator Predictions (cool 43°C → 24°C):")
+    print(f"\n   Simulator Predictions (cool 43°C → 24°C):")
     print(f"     SEI:     {factual_attr.sei_growth*100:.1f}% → {cf_attr.sei_growth*100:.1f}% "
           f"(Δ = {sei_reduction*100:+.1f}%)")
     print(f"     Electrolyte: {factual_attr.electrolyte_loss*100:.1f}% → "
@@ -296,7 +292,7 @@ def run_experiment_1_temperature():
           f"{cf_attr.active_material_loss*100:.1f}%")
     
     print(f"\n  ✅ Validation:")
-    print(f"     Direction: {'✓ CORRECT' if direction_correct else '✗ WRONG'} "
+    print(f"     Direction: {' CORRECT' if direction_correct else ' WRONG'} "
           f"(simulator predicts cooling reduces degradation: {sei_reduction > 0})")
     print(f"     Predicted rate improvement: {predicted_rate_ratio:.2f}x")  
     print(f"     Actual rate improvement:    {rate_ratio:.2f}x")
@@ -341,13 +337,13 @@ def run_experiment_2_current():
     fact_metrics = compute_degradation_rate(factual['capacities'])
     gt_metrics = compute_degradation_rate(ground_truth['capacities'])
     
-    print(f"\n  📊 B0033 (4A): {fact_metrics['rate_pct_per_cycle']:.4f} %SOH/cycle "
+    print(f"\n   B0033 (4A): {fact_metrics['rate_pct_per_cycle']:.4f} %SOH/cycle "
           f"({fact_metrics['total_fade_pct']:.1f}% total fade over {fact_metrics['n_cycles']} cycles)")
-    print(f"  📊 B0036 (2A): {gt_metrics['rate_pct_per_cycle']:.4f} %SOH/cycle "
+    print(f"   B0036 (2A): {gt_metrics['rate_pct_per_cycle']:.4f} %SOH/cycle "
           f"({gt_metrics['total_fade_pct']:.1f}% total fade over {gt_metrics['n_cycles']} cycles)")
     
     rate_ratio = fact_metrics['rate_pct_per_cycle'] / max(gt_metrics['rate_pct_per_cycle'], 1e-8)
-    print(f"  📊 Actual rate ratio: {rate_ratio:.2f}x (4A is {rate_ratio:.2f}x faster)")
+    print(f"   Actual rate ratio: {rate_ratio:.2f}x (4A is {rate_ratio:.2f}x faster)")
     
     # Run counterfactual simulator
     simulator = CounterfactualSimulator()
@@ -378,7 +374,7 @@ def run_experiment_2_current():
     predicted_rate_ratio = 1 / max(1 - total_reduction, 0.1)
     ratio_error = abs(predicted_rate_ratio - rate_ratio) / max(rate_ratio, 1e-8) * 100
     
-    print(f"\n  🔮 Simulator Predictions (reduce 4A → 2A):")
+    print(f"\n   Simulator Predictions (reduce 4A → 2A):")
     print(f"     AM Loss: {factual_attr.active_material_loss*100:.1f}% → "
           f"{cf_attr.active_material_loss*100:.1f}% (Δ = {am_reduction*100:+.1f}%)")
     print(f"     SEI:     {factual_attr.sei_growth*100:.1f}% → {cf_attr.sei_growth*100:.1f}%")
@@ -386,7 +382,7 @@ def run_experiment_2_current():
           f"{cf_attr.lithium_plating*100:.1f}%")
     
     print(f"\n  ✅ Validation:")
-    print(f"     Direction: {'✓ CORRECT' if direction_correct else '✗ WRONG'}")
+    print(f"     Direction: {' CORRECT' if direction_correct else ' WRONG'}")
     print(f"     Predicted rate improvement: {predicted_rate_ratio:.2f}x")
     print(f"     Actual rate improvement:    {rate_ratio:.2f}x")
     print(f"     Ratio estimation error:     {ratio_error:.1f}%")
@@ -430,13 +426,13 @@ def run_experiment_3_combined():
     fact_metrics = compute_degradation_rate(factual['capacities'])
     gt_metrics = compute_degradation_rate(ground_truth['capacities'])
     
-    print(f"\n  📊 B0029 (43°C/4A): {fact_metrics['rate_pct_per_cycle']:.4f} %SOH/cycle "
+    print(f"\n   B0029 (43°C/4A): {fact_metrics['rate_pct_per_cycle']:.4f} %SOH/cycle "
           f"({fact_metrics['total_fade_pct']:.1f}% fade over {fact_metrics['n_cycles']} cycles)")
-    print(f"  📊 B0005 (24°C/2A): {gt_metrics['rate_pct_per_cycle']:.4f} %SOH/cycle "
+    print(f"   B0005 (24°C/2A): {gt_metrics['rate_pct_per_cycle']:.4f} %SOH/cycle "
           f"({gt_metrics['total_fade_pct']:.1f}% fade over {gt_metrics['n_cycles']} cycles)")
     
     rate_ratio = fact_metrics['rate_pct_per_cycle'] / max(gt_metrics['rate_pct_per_cycle'], 1e-8)
-    print(f"  📊 Actual rate ratio: {rate_ratio:.2f}x (harsh is {rate_ratio:.2f}x faster)")
+    print(f"   Actual rate ratio: {rate_ratio:.2f}x (harsh is {rate_ratio:.2f}x faster)")
     
     # Run simulator with two sequential interventions
     simulator = CounterfactualSimulator()
@@ -481,7 +477,7 @@ def run_experiment_3_combined():
     predicted_rate_ratio = 1 / max(1 - total_reduction, 0.1)
     ratio_error = abs(predicted_rate_ratio - rate_ratio) / max(rate_ratio, 1e-8) * 100
     
-    print(f"\n  🔮 Simulator Predictions (cool + reduce current):")
+    print(f"\n   Simulator Predictions (cool + reduce current):")
     print(f"     SEI:     {factual_attr.sei_growth*100:.1f}% → {cf_attr_final.sei_growth*100:.1f}% "
           f"(Δ = {total_sei_reduction*100:+.1f}%)")
     print(f"     AM Loss: {factual_attr.active_material_loss*100:.1f}% → "
@@ -489,7 +485,7 @@ def run_experiment_3_combined():
     print(f"     Combined mechanism reduction: {total_reduction*100:.1f}%")
     
     print(f"\n  ✅ Validation:")
-    print(f"     Direction: {'✓ CORRECT' if direction_correct else '✗ WRONG'}")
+    print(f"     Direction: {' CORRECT' if direction_correct else ' WRONG'}")
     print(f"     Predicted rate improvement: {predicted_rate_ratio:.2f}x")
     print(f"     Actual rate improvement:    {rate_ratio:.2f}x")
     print(f"     Ratio estimation error:     {ratio_error:.1f}%")
@@ -526,9 +522,7 @@ def run_experiment_3_combined():
     }
 
 
-# =============================================================================
 # Main
-# =============================================================================
 
 def main():
     print("=" * 80)
@@ -574,7 +568,7 @@ def main():
         print(f"\n  {'Experiment':<45} {'Dir':>5} {'Pred':>8} {'Actual':>8} {'Err':>8}")
         print(f"  {'-'*74}")
         for r in results:
-            dir_sym = '✓' if r['direction_correct'] else '✗'
+            dir_sym = '' if r['direction_correct'] else ''
             print(f"  {r['experiment']:<45} {dir_sym:>5} "
                   f"{r['predicted_rate_ratio']:>7.2f}x "
                   f"{r['actual_rate_ratio']:>7.2f}x "

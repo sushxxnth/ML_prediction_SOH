@@ -353,8 +353,8 @@ def train_pinn_model(epochs=300, lr=0.002, augment_factor=30, batch_size=32):
     with open('reports/pinn_causal/pinn_retrained_results.json', 'w') as f:
         json.dump(results, f, indent=2)
     
-    print(f"\n✓ Model saved to: reports/pinn_causal/pinn_causal_retrained.pt")
-    print(f"✓ Results saved to: reports/pinn_causal/pinn_retrained_results.json")
+    print(f"\n Model saved to: reports/pinn_causal/pinn_causal_retrained.pt")
+    print(f" Results saved to: reports/pinn_causal/pinn_retrained_results.json")
     
     print("\n" + "=" * 70)
     print("TRAINING COMPLETE")

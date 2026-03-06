@@ -187,7 +187,7 @@ def validate_scenario(scenario: dict, optimizer: InterventionOptimizer):
         alignment_score += 1
     
     alignment_pct = (alignment_score / 2) * 100
-    print(f"✓ Alignment with known optimal: {alignment_pct:.0f}%")
+    print(f" Alignment with known optimal: {alignment_pct:.0f}%")
     
     return {
         'scenario': scenario['name'],
@@ -243,18 +243,18 @@ def main():
     print("-" * 80)
     print(f"{'AVERAGE':<30} {'':<20} {avg_reduction:>6.1f}%       {avg_alignment:>6.0f}%")
     
-    print(f"\n📊 Key Findings:")
-    print(f"  ✓ Average dominant mechanism reduction: {avg_reduction:.1f}%")
-    print(f"  ✓ Alignment with known optimal strategies: {avg_alignment:.0f}%")
-    print(f"  ✓ All recommendations actionable within minutes")
-    print(f"  ✓ Interpretable causal explanations provided")
+    print(f"\n Key Findings:")
+    print(f"   Average dominant mechanism reduction: {avg_reduction:.1f}%")
+    print(f"   Alignment with known optimal strategies: {avg_alignment:.0f}%")
+    print(f"   All recommendations actionable within minutes")
+    print(f"   Interpretable causal explanations provided")
     
     # Novelty assessment
-    print(f"\n🌟 Novelty Assessment:")
-    print(f"  ✓ First causal counterfactual approach for battery management")
-    print(f"  ✓ Validated on real degradation scenarios (NASA + XJTU)")
-    print(f"  ✓ Interpretable: shows mechanism-specific impacts")
-    print(f"  ✓ Practical: recommendations are immediately actionable")
+    print(f"\n Novelty Assessment:")
+    print(f"   First causal counterfactual approach for battery management")
+    print(f"   Validated on real degradation scenarios (NASA + XJTU)")
+    print(f"   Interpretable: shows mechanism-specific impacts")
+    print(f"   Practical: recommendations are immediately actionable")
     
     # Save results
     output_dir = Path("reports")

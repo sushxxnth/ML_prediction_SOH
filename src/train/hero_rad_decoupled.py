@@ -26,9 +26,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from src.data.unified_pipeline import UnifiedDataPipeline, UnifiedBatteryDataset
 
 
-# =============================================================================
 # Gradient Reversal (for domain adversarial)
-# =============================================================================
 
 class GradientReversalFunction(Function):
     @staticmethod
@@ -39,7 +37,6 @@ class GradientReversalFunction(Function):
     @staticmethod
     def backward(ctx, grad_output):
         return grad_output.neg() * ctx.alpha, None
-
 
 
 # Memory Bank for Retrieval
@@ -125,10 +122,7 @@ class SimpleMemoryBank:
         self.cached_latents = None
 
 
-
-# =============================================================================
 # Combined RAD + Decoupled RUL Model
-# =============================================================================
 
 class RADDecoupledModel(nn.Module):
     """
@@ -296,9 +290,7 @@ class RADDecoupledModel(nn.Module):
         return soh_pred, rul_pred, domain_logits, latent
 
 
-# =============================================================================
 # Training
-# =============================================================================
 
 def train_combined_model(
     train_loader: DataLoader,

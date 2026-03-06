@@ -187,7 +187,7 @@ def run_pipeline(scenario_name: str = "cold_cycling"):
     mode_confidence = 99.2 if mode_val >= 0.5 else 99.6
     print(f"  ├─ Detected mode:   {mode_label}")
     print(f"  ├─ Confidence:      {mode_confidence:.1f}%")
-    print(f"  └─ Arrhenius + diffusion embeddings active: ✓")
+    print(f"  └─ Arrhenius + diffusion embeddings active: ")
 
     # ──────────────────────────────────────────────────────────────────────────
     # STAGE 5b: Advisory System — Ranked Recommendations
@@ -325,7 +325,7 @@ def _show_advisory(dominant_mechanism, mode_label, soh, rul):
     if mode_label == "Cycling":
         if dominant_mechanism == "Lithium Plating":
             immediate = [
-                "⚡ Reduce charge current immediately (target ≤ 0.5C)",
+                " Reduce charge current immediately (target ≤ 0.5C)",
                 "🌡  Pre-warm battery to ≥ 15°C before charging",
             ]
             strategic = [
@@ -343,7 +343,7 @@ def _show_advisory(dominant_mechanism, mode_label, soh, rul):
                 "Consider capacity-based end-of-discharge cutoff",
             ]
         else:
-            immediate = ["⚙️ Continue current protocol — no immediate action needed"]
+            immediate = ["⚙ Continue current protocol — no immediate action needed"]
             strategic = ["Maintain standard operating envelope"]
     else:  # Storage
         if dominant_mechanism in ("SEI Layer Growth", "Electrolyte Decomposition"):

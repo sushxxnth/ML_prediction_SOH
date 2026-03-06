@@ -36,9 +36,7 @@ from src.data.unified_pipeline import UnifiedDataPipeline
 from src.data.eis_impedance_loader import EISImpedanceLoader
 
 
-# =============================================================================
 # Unified Sample Format
-# =============================================================================
 
 @dataclass
 class UnifiedDegradationSample:
@@ -90,9 +88,7 @@ class UnifiedDegradationDataset(Dataset):
         }
 
 
-# =============================================================================
 # Unified Model Architecture
-# =============================================================================
 
 class UnifiedDegradationModel(nn.Module):
     """
@@ -234,9 +230,7 @@ class UnifiedDegradationModel(nn.Module):
         return soh_pred, rul_pred, domain_logits, latent
 
 
-# =============================================================================
 # Data Loading
-# =============================================================================
 
 def load_cycling_samples(pipeline: UnifiedDataPipeline) -> List[UnifiedDegradationSample]:
     """Convert NASA cycling data to unified format."""
@@ -345,9 +339,7 @@ def normalize_features(samples: List[UnifiedDegradationSample]) -> List[UnifiedD
     return samples
 
 
-# =============================================================================
 # Training
-# =============================================================================
 
 def train_unified_model(
     cycling_samples: List[UnifiedDegradationSample],

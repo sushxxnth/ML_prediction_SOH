@@ -290,7 +290,7 @@ def verify_zero_shot_reduction() -> Dict:
     print(f"Paper Claim:        55%")
     
     verified = abs(reduction_percent - 55.0) < 5.0  # Allow 5% tolerance
-    status = "✅ VERIFIED" if verified else "⚠️ CLOSE"
+    status = "✅ VERIFIED" if verified else "⚠ CLOSE"
     print(f"\\nStatus: {status}")
     
     return {
@@ -384,10 +384,10 @@ def main():
     print(f"\\nTotal: {verified_count}/{total_count} claims verified")
     
     if verified_count == total_count:
-        print("\\n🎉 ALL CLAIMS VERIFIED!")
+        print("\\n ALL CLAIMS VERIFIED!")
         return 0
     else:
-        print(f"\\n⚠️  {total_count - verified_count} claims need attention")
+        print(f"\\n⚠  {total_count - verified_count} claims need attention")
         return 1
 
 

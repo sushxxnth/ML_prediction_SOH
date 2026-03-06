@@ -128,7 +128,7 @@ def run_causal_attribution_on_xjtu():
     
     model.load_state_dict(torch.load(model_path, weights_only=False, map_location='cpu'))
     model.eval()
-    print(f"✓ Loaded causal attribution model")
+    print(f" Loaded causal attribution model")
     
     # Load XJTU samples
     samples = load_xjtu_for_attribution()
@@ -237,7 +237,7 @@ def run_causal_attribution_on_xjtu():
     expected = "ACTIVE_MATERIAL_LOSS"
     for c_rate, data in sorted(results.items()):
         actual = data['dominant_mechanism']
-        match = "✓" if actual == expected else "✗"
+        match = "" if actual == expected else ""
         print(f"\n{c_rate}: Expected={expected}, Actual={actual} {match}")
         
         # Show top 3
@@ -250,7 +250,7 @@ def run_causal_attribution_on_xjtu():
     with open(output_path, 'w') as f:
         json.dump(results, f, indent=2)
     
-    print(f"\n✓ Results saved to {output_path}")
+    print(f"\n Results saved to {output_path}")
     
     return results
 

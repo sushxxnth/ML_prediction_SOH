@@ -105,7 +105,7 @@ class EnhancedBatteryAdvisor:
         state_dict = torch.load(path, map_location=self.device, weights_only=False)
         self.unified_model.load_state_dict(state_dict)
         self.unified_model.eval()
-        print(f"  ✓ Improved unified model v3 loaded")
+        print(f"   Improved unified model v3 loaded")
     
     def _load_multimodal_model(self, path: str):
         """Load multi-modal v2 model."""
@@ -115,7 +115,7 @@ class EnhancedBatteryAdvisor:
         state_dict = torch.load(path, map_location=self.device, weights_only=False)
         self.multimodal_model.load_state_dict(state_dict)
         self.multimodal_model.eval()
-        print(f"  ✓ Multi-modal model loaded")
+        print(f"   Multi-modal model loaded")
     
     def analyze(
         self,
@@ -217,7 +217,7 @@ class EnhancedBatteryAdvisor:
         # Add early warning specific suggestion
         if early_warning_triggered:
             suggestions.insert(0, Suggestion(
-                title="⚠️ Early warning: Plan for battery service",
+                title="⚠ Early warning: Plan for battery service",
                 description="Multi-modal analysis indicates increased degradation risk. "
                            "Schedule a battery health check.",
                 impact="Prevent unexpected failure",
@@ -313,25 +313,25 @@ class EnhancedBatteryAdvisor:
         lines.append("│                                                                  │")
         
         # Early warning
-        ew_status = "⚠️  TRIGGERED" if report.early_warning_triggered else "✅ Normal"
+        ew_status = "⚠  TRIGGERED" if report.early_warning_triggered else "✅ Normal"
         lines.append(f"│  Early Warning:       {ew_status:15s} (conf: {report.early_warning_confidence:.0%})       │")
         lines.append(f"│  Data Sources:        {', '.join(report.data_sources):35s}│")
         lines.append("│                                                                  │")
         
         lines.append("├──────────────────────────────────────────────────────────────────┤")
-        lines.append("│  💡 Recommendations:                                             │")
+        lines.append("│   Recommendations:                                             │")
         
         for i, s in enumerate(report.suggestions[:2], 1):
             title = s.title[:55]
             lines.append(f"│  {i}. {title:58s}│")
         
         lines.append("├──────────────────────────────────────────────────────────────────┤")
-        lines.append(f"│  📊 Trend: {report.rate_status.capitalize():10s} degradation rate                      │")
+        lines.append(f"│   Trend: {report.rate_status.capitalize():10s} degradation rate                      │")
         
         if report.cycles_to_warning:
             lines.append(f"│  ⏰ Cycles to warning zone: {report.cycles_to_warning:5d}                              │")
         
-        lines.append(f"│  🎯 Confidence: {report.confidence:.0%}                                            │")
+        lines.append(f"│   Confidence: {report.confidence:.0%}                                            │")
         lines.append("└──────────────────────────────────────────────────────────────────┘")
         
         return "\n".join(lines)

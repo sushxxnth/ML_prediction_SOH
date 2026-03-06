@@ -57,9 +57,9 @@ def verify_causal_accuracy():
     weight_path = "reports/pinn_causal/pinn_causal_retrained.pt"
     try:
         model.load_state_dict(torch.load(weight_path, map_location='cpu', weights_only=True))
-        print(f"  ✓ Loaded weights from: {weight_path}")
+        print(f"   Loaded weights from: {weight_path}")
     except Exception as e:
-        print(f"  ✗ Error loading weights: {e}")
+        print(f"   Error loading weights: {e}")
         return False
     
     model.eval()
@@ -87,7 +87,7 @@ def verify_causal_accuracy():
                 'expected': s['expected'],
             })
     
-    print(f"  ✓ Loaded {len(all_scenarios)} scenarios")
+    print(f"   Loaded {len(all_scenarios)} scenarios")
     
     # Track results
     results = {
@@ -166,7 +166,7 @@ def verify_causal_accuracy():
         # Show errors
         if r['errors']:
             for error in r['errors']:
-                print(f"    ✗ {error['name']}: expected '{error['expected']}', got '{error['predicted']}'")
+                print(f"     {error['name']}: expected '{error['expected']}', got '{error['predicted']}'")
     
     overall_acc = total_correct / total if total > 0 else 0
     print("-"*70)
@@ -174,10 +174,10 @@ def verify_causal_accuracy():
     print("="*70)
     
     if overall_acc >= 0.92:
-        print("\\n✓ SUCCESS: 92% accuracy threshold achieved!")
+        print("\\n SUCCESS: 92% accuracy threshold achieved!")
         return True
     else:
-        print(f"\\n✗ FAILURE: Only {overall_acc*100:.1f}%, expected 92%")
+        print(f"\\n FAILURE: Only {overall_acc*100:.1f}%, expected 92%")
         return False
 
 

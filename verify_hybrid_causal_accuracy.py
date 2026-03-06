@@ -54,13 +54,13 @@ def verify_hybrid_accuracy():
     weight_path = "reports/pinn_causal/pinn_causal_retrained.pt"
     try:
         model.load_state_dict(torch.load(weight_path, map_location='cpu', weights_only=True))
-        print(f"  ✓ Loaded Hybrid PINN weights from: {weight_path}")
+        print(f"   Loaded Hybrid PINN weights from: {weight_path}")
     except Exception as e:
-        print(f"  ✗ Error loading weights: {e}")
+        print(f"   Error loading weights: {e}")
         return False
     
     model.eval()
-    print("  ✓ Model initialized (Neural Network + Physics Priors)")
+    print("   Model initialized (Neural Network + Physics Priors)")
     
     # Get all scenarios
     print("\\n[2/3] Loading 75 benchmark scenarios...")
@@ -85,7 +85,7 @@ def verify_hybrid_accuracy():
                 'expected': s['expected'],
             })
     
-    print(f"  ✓ Loaded {len(all_scenarios)} scenarios across 5 datasets")
+    print(f"   Loaded {len(all_scenarios)} scenarios across 5 datasets")
     
     # Track results
     results = {
@@ -161,11 +161,11 @@ def verify_hybrid_accuracy():
     print("="*70)
     
     if overall_acc >= 0.92:
-        print("\\n🎉 SUCCESS: Hybrid PINN achieves 92.0% accuracy!")
+        print("\\n SUCCESS: Hybrid PINN achieves 92.0% accuracy!")
         print("   Expert priors contribute 14.7 percentage points over Pure PINN (77.3%)")
         return True
     else:
-        print(f"\\n✗ FAILURE: Only {overall_acc*100:.1f}%, expected 92%")
+        print(f"\\n FAILURE: Only {overall_acc*100:.1f}%, expected 92%")
         return False
 
 

@@ -260,7 +260,7 @@ def main():
             indent=2,
         )
 
-    print(f"\n✓ Results saved to {out_path}")
+    print(f"\n Results saved to {out_path}")
 
 
 if __name__ == "__main__":

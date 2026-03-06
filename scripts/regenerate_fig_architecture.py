@@ -149,10 +149,10 @@ ax_b.text(0.5, 0.98, 'Physics Parameter Learning', fontsize=16, fontweight='bold
 
 cols = ['Parameter', 'Learned\nValue', 'Literature\nRange', 'Status']
 rows = [
-    ['$E_a$ (SEI\nactivation)', '50.3\nkJ/mol', '35-60\nkJ/mol', '✓'],
-    ['β (C-rate\nexponent)',    '1.48',           '~1.5',           '✓'],
-    ['γ (cycle\nexponent)',     '0.52',           '0.3-1.0',        '✓'],
-    ['α (plating\ncoefficient)','0.51',           '0.3-0.7',        '✓'],
+    ['$E_a$ (SEI\nactivation)', '50.3\nkJ/mol', '35-60\nkJ/mol', ''],
+    ['β (C-rate\nexponent)',    '1.48',           '~1.5',           ''],
+    ['γ (cycle\nexponent)',     '0.52',           '0.3-1.0',        ''],
+    ['α (plating\ncoefficient)','0.51',           '0.3-0.7',        ''],
 ]
 
 # We will draw the table manually to have perfect line control

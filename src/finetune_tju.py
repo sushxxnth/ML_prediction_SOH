@@ -125,7 +125,7 @@ def finetune_hero_on_tju():
     )
     
     model.load_state_dict(torch.load(model_path, weights_only=False, map_location='cpu'))
-    print(f"✓ Loaded pre-trained model from {model_path}")
+    print(f" Loaded pre-trained model from {model_path}")
     
     # Load data
     train_samples, test_samples = load_tju_data()
@@ -239,12 +239,12 @@ def finetune_hero_on_tju():
     
     rul_mae = np.mean(np.abs(rul_pred - rul_true)) * 1000
     
-    print(f"\n📊 SOH Prediction:")
+    print(f"\n SOH Prediction:")
     print(f"   MAE:  {soh_mae:.4f} ({soh_mae*100:.2f}%)")
     print(f"   RMSE: {soh_rmse:.4f}")
     print(f"   R²:   {soh_r2:.4f}")
     
-    print(f"\n📊 RUL Prediction:")
+    print(f"\n RUL Prediction:")
     print(f"   MAE:  {rul_mae:.1f} cycles")
     
     # Comparison
@@ -294,8 +294,8 @@ def finetune_hero_on_tju():
     model_output = Path("reports/hero_model/hero_model_tju_finetuned.pt")
     torch.save(model.state_dict(), model_output)
     
-    print(f"\n✓ Results saved to {output_path}")
-    print(f"✓ Fine-tuned model saved to {model_output}")
+    print(f"\n Results saved to {output_path}")
+    print(f" Fine-tuned model saved to {model_output}")
     
     return results
 

@@ -79,7 +79,7 @@ plt.tight_layout()
 # Save figure
 output_path = 'Casual_Attribution_reports/training_loss_accuracy_curves.png'
 plt.savefig(output_path, dpi=300, bbox_inches='tight')
-print(f"✓ Saved training curves to: {output_path}")
+print(f" Saved training curves to: {output_path}")
 
 # Also create a detailed view of early epochs (1-50) showing rapid learning
 fig2, (ax3, ax4) = plt.subplots(1, 2, figsize=(14, 5))
@@ -132,7 +132,7 @@ plt.tight_layout()
 # Save early dynamics figure
 output_path2 = 'Casual_Attribution_reports/training_early_dynamics.png'
 plt.savefig(output_path2, dpi=300, bbox_inches='tight')
-print(f"✓ Saved early training dynamics to: {output_path2}")
+print(f" Saved early training dynamics to: {output_path2}")
 
 print("\nTraining Summary:")
 print(f"  Initial loss: {loss[0]:.4f} → Final loss: {loss[-1]:.4f} (Δ = {loss[0]-loss[-1]:.4f})")

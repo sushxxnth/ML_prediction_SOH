@@ -1,4 +1,10 @@
+# Paper source files - keep local only
+*.tex
+*supplementary*
+Casual_Attribution_reports/cce_paper*
+
 # Large data files - keep local only
+
 our_data/
 data/batterylife/
 data/new_datasets/

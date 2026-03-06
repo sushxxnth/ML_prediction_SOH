@@ -510,7 +510,7 @@ def create_visualizations(model, cycling_samples, storage_samples, history, outp
       Epochs: {len(history['train_loss'])}
       Final Domain Acc: {history['domain_acc'][-1]:.1%}
     
-    ✓ Model learned domain separation!
+     Model learned domain separation!
     """
     ax6.text(0.1, 0.9, summary, fontsize=11, verticalalignment='top',
             fontfamily='monospace', transform=ax6.transAxes,

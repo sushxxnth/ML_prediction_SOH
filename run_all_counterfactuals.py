@@ -45,8 +45,8 @@ def new_main():
     print(f"\n\n{'='*70}")
     print("VALIDATION SUMMARY (WITH REAL PINN)")
     print("=" * 70)
-    print(f"\n  ✓ Average dominant mechanism reduction: {avg_reduction:.1f}%")
-    print(f"  ✓ Alignment with known optimal strategies: {avg_alignment:.0f}%")
+    print(f"\n   Average dominant mechanism reduction: {avg_reduction:.1f}%")
+    print(f"   Alignment with known optimal strategies: {avg_alignment:.0f}%")
 
 import numpy as np
 new_main()

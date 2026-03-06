@@ -94,15 +94,11 @@ class DatasetInfo:
                 f"chemistries={self.chemistries}, temps={self.temperatures})")
 
 
-# =============================================================================
 # Dataset Registry
-# =============================================================================
 
 DATASET_REGISTRY: Dict[str, DatasetInfo] = {
     
-    # -------------------------------------------------------------------------
     # NASA Battery Dataset (Baseline)
-    # -------------------------------------------------------------------------
     "nasa": DatasetInfo(
         name="nasa",
         full_name="NASA Prognostics Center Battery Dataset",
@@ -126,9 +122,7 @@ DATASET_REGISTRY: Dict[str, DatasetInfo] = {
         preprocessing_notes="MATLAB .mat files with nested structures. Use scipy.io.loadmat."
     ),
     
-    # -------------------------------------------------------------------------
     # Sandia National Labs (Temperature King)
-    # -------------------------------------------------------------------------
     "sandia": DatasetInfo(
         name="sandia",
         full_name="Sandia National Laboratories Battery Archive",
@@ -159,9 +153,7 @@ DATASET_REGISTRY: Dict[str, DatasetInfo] = {
         """
     ),
     
-    # -------------------------------------------------------------------------
     # CALCE (Chemistry + Driving Profiles)
-    # -------------------------------------------------------------------------
     "calce": DatasetInfo(
         name="calce",
         full_name="CALCE Battery Research Group (University of Maryland)",
@@ -201,9 +193,7 @@ DATASET_REGISTRY: Dict[str, DatasetInfo] = {
         """
     ),
     
-    # -------------------------------------------------------------------------
     # Oxford Battery Degradation (Dynamic Urban Profiles)
-    # -------------------------------------------------------------------------
     "oxford": DatasetInfo(
         name="oxford",
         full_name="Oxford Battery Degradation Dataset",
@@ -232,9 +222,7 @@ DATASET_REGISTRY: Dict[str, DatasetInfo] = {
         preprocessing_notes="CSV format with time-series voltage/current data."
     ),
     
-    # -------------------------------------------------------------------------
     # TBSI Sunwoda (Fast Charging, EV Conditions)
-    # -------------------------------------------------------------------------
     "tbsi_sunwoda": DatasetInfo(
         name="tbsi_sunwoda",
         full_name="TBSI Sunwoda Battery Dataset",
@@ -266,9 +254,7 @@ DATASET_REGISTRY: Dict[str, DatasetInfo] = {
         """
     ),
 
-    # -------------------------------------------------------------------------
     # NASA Randomized Battery Usage (Random Walk) - RW9–RW12
-    # -------------------------------------------------------------------------
     "randomized_battery_usage": DatasetInfo(
         name="randomized_battery_usage",
         full_name="NASA Randomized Battery Usage (Random Walk) RW9–RW12",
@@ -293,9 +279,7 @@ DATASET_REGISTRY: Dict[str, DatasetInfo] = {
         preprocessing_notes="MAT files with 'data.step' structure; reference discharges used for capacity."
     ),
     
-    # -------------------------------------------------------------------------
     # McMaster University (Multi-temp + Fast Charging)
-    # -------------------------------------------------------------------------
     "mcmaster": DatasetInfo(
         name="mcmaster",
         full_name="McMaster University Battery Research Group Datasets",
@@ -323,9 +307,7 @@ DATASET_REGISTRY: Dict[str, DatasetInfo] = {
         preprocessing_notes="Multiple sub-datasets with different formats."
     ),
     
-    # -------------------------------------------------------------------------
     # BatteryLife Meta-Dataset (80 chemistries, 12 temperatures)
-    # -------------------------------------------------------------------------
     "batterylife": DatasetInfo(
         name="batterylife",
         full_name="BatteryLife: Comprehensive Battery Life Prediction Dataset",
@@ -369,9 +351,7 @@ DATASET_REGISTRY: Dict[str, DatasetInfo] = {
         """
     ),
     
-    # -------------------------------------------------------------------------
     # Battery Data Alliance (LF Energy)
-    # -------------------------------------------------------------------------
     "bda": DatasetInfo(
         name="bda",
         full_name="Battery Data Alliance (LF Energy)",
@@ -399,9 +379,7 @@ DATASET_REGISTRY: Dict[str, DatasetInfo] = {
         preprocessing_notes="Uses Battery Data Format (BDF). Python SDK available."
     ),
     
-    # -------------------------------------------------------------------------
     # PulseBat (Second-Life Batteries)
-    # -------------------------------------------------------------------------
     "pulsebat": DatasetInfo(
         name="pulsebat",
         full_name="PulseBat Second-Life Battery Dataset",
@@ -434,9 +412,7 @@ DATASET_REGISTRY: Dict[str, DatasetInfo] = {
 }
 
 
-# =============================================================================
 # Registry Functions
-# =============================================================================
 
 def get_dataset_info(name: str) -> DatasetInfo:
     """Get information about a specific dataset."""
@@ -526,9 +502,7 @@ def print_registry_summary():
     print("="*80)
 
 
-# =============================================================================
 # Download Helpers
-# =============================================================================
 
 def get_download_instructions(name: str) -> str:
     """Get download instructions for a dataset."""
@@ -559,9 +533,7 @@ LICENSE:
     return instructions
 
 
-# =============================================================================
 # Testing
-# =============================================================================
 
 if __name__ == '__main__':
     print_registry_summary()

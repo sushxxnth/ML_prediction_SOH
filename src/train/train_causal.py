@@ -34,9 +34,7 @@ from src.models.causal_attribution import (
 from src.data.unified_pipeline import UnifiedDataPipeline, UnifiedBatteryDataset
 
 
-# =============================================================================
 # Physics-Constrained Loss Function
-# =============================================================================
 
 class CausalAttributionLoss(nn.Module):
     """
@@ -185,9 +183,7 @@ class CausalAttributionLoss(nn.Module):
         return loss
 
 
-# =============================================================================
 # Training Function
-# =============================================================================
 
 def train_causal_model(
     data_root: str = "data",
@@ -404,7 +400,7 @@ def train_causal_model(
     plt.savefig(output_path / "training_curves.png", dpi=150)
     plt.close()
     
-    print(f"\n✓ Training complete! Model saved to {output_path}")
+    print(f"\n Training complete! Model saved to {output_path}")
     print(f"  Final SOH MAE: {history['soh_mae'][-1]:.4f}")
     
     return results

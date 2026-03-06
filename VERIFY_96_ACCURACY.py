@@ -52,9 +52,9 @@ def verify_96_accuracy():
     weight_path = "reports/pinn_causal/pinn_causal_retrained.pt"
     try:
         model.load_state_dict(torch.load(weight_path, map_location='cpu', weights_only=True))
-        print(f"  ✓ Loaded weights from: {weight_path}")
+        print(f"   Loaded weights from: {weight_path}")
     except Exception as e:
-        print(f"  ✗ Error loading weights: {e}")
+        print(f"   Error loading weights: {e}")
         return False
     
     model.eval()
@@ -82,7 +82,7 @@ def verify_96_accuracy():
                 'expected': s['expected'],
             })
     
-    print(f"  ✓ Loaded {len(all_scenarios)} scenarios")
+    print(f"   Loaded {len(all_scenarios)} scenarios")
     
     # Track results
     results = {
@@ -155,10 +155,10 @@ def verify_96_accuracy():
     
     # Check if we hit the target
     if overall_acc >= 96.0:
-        print("\n✓ SUCCESS: 96% accuracy threshold achieved!")
+        print("\n SUCCESS: 96% accuracy threshold achieved!")
         return True
     else:
-        print(f"\n✗ FAILED: Expected 96%, got {overall_acc:.1f}%")
+        print(f"\n FAILED: Expected 96%, got {overall_acc:.1f}%")
         return False
 
 

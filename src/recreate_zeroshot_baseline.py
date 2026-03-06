@@ -557,7 +557,7 @@ def run_zeroshot_baseline_comparison():
     with open(output_path, 'w') as f:
         json.dump(results, f, indent=2)
     
-    print(f"\n✓ Results saved to {output_path}")
+    print(f"\n Results saved to {output_path}")
     print("\nNOTE: All baseline results were re-trained on LCO and evaluated zero-shot on Panasonic NCA.")
     
     return results

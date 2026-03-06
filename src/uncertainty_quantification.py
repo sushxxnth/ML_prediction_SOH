@@ -162,11 +162,11 @@ def run_uncertainty_quantification():
     
     model.load_state_dict(torch.load(model_path, weights_only=False, map_location='cpu'))
     model.eval()
-    print("✓ Loaded HERO model")
+    print(" Loaded HERO model")
     
     # Load test data
     samples = load_test_data()
-    print(f"✓ Loaded {len(samples)} test samples")
+    print(f" Loaded {len(samples)} test samples")
     
     # Split 50% for held-out test
     np.random.seed(42)
@@ -174,7 +174,7 @@ def run_uncertainty_quantification():
     test_indices = indices[len(indices)//2:]
     test_samples = [samples[i] for i in test_indices]
     
-    print(f"✓ Using {len(test_samples)} held-out samples for UQ")
+    print(f" Using {len(test_samples)} held-out samples for UQ")
     
     # Get predictions
     all_soh_pred, all_soh_true = [], []
@@ -295,7 +295,7 @@ RUL Prediction:
     with open(output_path, 'w') as f:
         json.dump(results, f, indent=2)
     
-    print(f"\n✓ Results saved to {output_path}")
+    print(f"\n Results saved to {output_path}")
     
     return results
 

@@ -31,9 +31,7 @@ from src.models.causal_attribution import (
     CausalExplainer,
 )
 
-# =============================================================================
 # SINGLE MODEL PATH - USED FOR ALL VALIDATIONS
-# =============================================================================
 MODEL_PATH = "reports/causal_attribution/causal_model.pt"
 
 
@@ -48,7 +46,7 @@ def load_unified_model():
     
     if Path(MODEL_PATH).exists():
         model.load_state_dict(torch.load(MODEL_PATH, weights_only=False, map_location='cpu'))
-        print(f"✓ Loaded SINGLE trained model from: {MODEL_PATH}")
+        print(f" Loaded SINGLE trained model from: {MODEL_PATH}")
     else:
         raise FileNotFoundError(f"Model not found: {MODEL_PATH}")
     
@@ -72,9 +70,7 @@ def make_context(temp_c: float, charge_c: float, discharge_c: float,
 BASE_FEATURES = np.array([0.12, 0.25, 0.82, 0.35, 0.45, 0.08, 0.09, 0.06, 0.25], dtype=np.float32)
 
 
-# =============================================================================
 # DATASET 1: NASA AMES PROGNOSTICS (15 scenarios)
-# =============================================================================
 def get_nasa_scenarios():
     """NASA dataset: 34 cells at 4°C, 24°C, 43°C with varied protocols."""
     return [
@@ -114,9 +110,7 @@ def get_nasa_scenarios():
     ]
 
 
-# =============================================================================
 # DATASET 2: PANASONIC 18650PF (UW-MADISON) - 15 scenarios
-# =============================================================================
 def get_panasonic_scenarios():
     """Panasonic dataset: EPA drive cycles at -20°C to 25°C.
     
@@ -161,9 +155,7 @@ def get_panasonic_scenarios():
     ]
 
 
-# =============================================================================
 # DATASET 3: NATURE ENERGY FAST-CHARGING (MATR) - 15 scenarios
-# =============================================================================
 def get_nature_scenarios():
     """Nature papers: Fast charging protocols at 30°C, 4C discharge.
     Severson et al. 2019 + Attia et al. 2020
@@ -205,9 +197,7 @@ def get_nature_scenarios():
     ]
 
 
-# =============================================================================
 # DATASET 4: RANDOMIZED 40°C STRESS - 15 scenarios
-# =============================================================================
 def get_randomized_scenarios():
     """Randomized stress tests at varied temperatures and C-rates."""
     return [
@@ -247,9 +237,7 @@ def get_randomized_scenarios():
     ]
 
 
-# =============================================================================
 # DATASET 5: HUST (MA ET AL. 2022) - 15 scenarios
-# =============================================================================
 def get_hust_scenarios():
     """HUST dataset: 77 LFP cells with 0.5C-3C discharge protocols.
     Ma et al. 2022 - Energy & Environmental Science
@@ -360,7 +348,7 @@ def run_all_validations(output_dir: str = "reports/causal_attribution/unified_va
         total_scenarios += total
         
         for r in results:
-            status = "✓" if r["correct"] else "✗"
+            status = "" if r["correct"] else ""
             print(f"  {r['scenario']:<30} | {r['predicted']:<20} | {status}")
         
         accuracy = correct / total * 100
@@ -392,7 +380,7 @@ def run_all_validations(output_dir: str = "reports/causal_attribution/unified_va
     
     print()
     if total_correct / total_scenarios >= 0.9:
-        print("  ✓✓ VALIDATION PASSED - Model demonstrates strong generalization")
+        print("   VALIDATION PASSED - Model demonstrates strong generalization")
     else:
         print("  ⚠  VALIDATION NEEDS REVIEW")
     print()
@@ -410,7 +398,7 @@ def run_all_validations(output_dir: str = "reports/causal_attribution/unified_va
     with open(output_path / "unified_validation_report.json", "w") as f:
         json.dump(report, f, indent=2)
     
-    print(f"  ✓ Saved report to {output_path / 'unified_validation_report.json'}")
+    print(f"   Saved report to {output_path / 'unified_validation_report.json'}")
     print()
     print("=" * 80)
     print("VALIDATION COMPLETE - SINGLE MODEL, ALL DATASETS")

@@ -213,11 +213,11 @@ def main():
     weight_path = "reports/pinn_causal/pinn_causal_retrained.pt"
     model.load_state_dict(torch.load(weight_path, map_location='cpu', weights_only=True))
     model.eval()
-    print(f"✓ Loaded model from {weight_path}")
+    print(f" Loaded model from {weight_path}")
     
     # Load scenarios
     scenarios = load_scenarios()
-    print(f"✓ Loaded {len(scenarios)} scenarios\n")
+    print(f" Loaded {len(scenarios)} scenarios\n")
     
     # Define ablation configurations
     configs = [

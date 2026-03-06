@@ -121,7 +121,7 @@ def evaluate_hero_on_tju():
     
     model.load_state_dict(torch.load(model_path, weights_only=False, map_location='cpu'))
     model.eval()
-    print(f"✓ Model loaded from {model_path}")
+    print(f" Model loaded from {model_path}")
     
     # Load TJU data
     samples = load_tju_data()
@@ -181,12 +181,12 @@ def evaluate_hero_on_tju():
     print("ZERO-SHOT RESULTS ON TJU (NCM/NCA)")
     print("=" * 60)
     
-    print(f"\n📊 SOH Prediction:")
+    print(f"\n SOH Prediction:")
     print(f"   MAE:  {soh_mae:.4f} ({soh_mae*100:.2f}%)")
     print(f"   RMSE: {soh_rmse:.4f}")
     print(f"   R²:   {soh_r2:.4f}")
     
-    print(f"\n📊 RUL Prediction:")
+    print(f"\n RUL Prediction:")
     print(f"   MAE:  {rul_mae:.1f} cycles")
     
     print("\n" + "=" * 60)
@@ -227,7 +227,7 @@ def evaluate_hero_on_tju():
     with open(output_path, 'w') as f:
         json.dump(results, f, indent=2)
     
-    print(f"\n✓ Results saved to {output_path}")
+    print(f"\n Results saved to {output_path}")
     
     return results
 

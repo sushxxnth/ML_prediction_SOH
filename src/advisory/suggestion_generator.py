@@ -165,9 +165,7 @@ def get_rul_full_status(rul_km: float) -> Tuple[str, str, str]:
     )
 
 
-
 # SUGGESTION SYSTEM
-
 
 
 class DegradationMode(Enum):
@@ -600,7 +598,7 @@ def format_suggestions_for_display(suggestions: List[Suggestion]) -> str:
     if not suggestions:
         return "No specific recommendations at this time."
     
-    lines = ["💡 Recommendations to Maximize Battery Life:\n"]
+    lines = [" Recommendations to Maximize Battery Life:\n"]
     
     priority_emoji = {
         SuggestionPriority.HIGH: "🔴",

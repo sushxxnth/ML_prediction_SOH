@@ -69,7 +69,7 @@ def test_storage_vs_cycling(model_path, data_root, output_dir, device='cpu'):
     print(f"   Cycling samples: {len(cycling_samples)}")
     
     if len(storage_samples) == 0 or len(cycling_samples) == 0:
-        print("⚠️  Insufficient data for comparison")
+        print("⚠  Insufficient data for comparison")
         return
     
     # Create datasets
@@ -109,7 +109,7 @@ def test_storage_vs_cycling(model_path, data_root, output_dir, device='cpu'):
             storage_soh_pred = storage_soh_pred[valid_storage]
             storage_soh_true = storage_soh_true[valid_storage]
         else:
-            print("⚠️  All storage predictions are NaN!")
+            print("⚠  All storage predictions are NaN!")
             storage_soh_pred = np.array([])
             storage_soh_true = np.array([])
         
@@ -128,7 +128,7 @@ def test_storage_vs_cycling(model_path, data_root, output_dir, device='cpu'):
             cycling_soh_pred = cycling_soh_pred[valid_cycling]
             cycling_soh_true = cycling_soh_true[valid_cycling]
         else:
-            print("⚠️  All cycling predictions are NaN!")
+            print("⚠  All cycling predictions are NaN!")
             cycling_soh_pred = np.array([])
             cycling_soh_true = np.array([])
     
@@ -249,11 +249,11 @@ def test_storage_vs_cycling(model_path, data_root, output_dir, device='cpu'):
         summary_text += "  ✅ Explicit distinction: Storage=0.0, Cycling>0.0"
     elif storage_context_np[:, 1].mean() < 0.1 and cycling_context_np[:, 1].mean() > 0.1:
         summary_text += "  ✅ Model CAN distinguish via C-rate\n"
-        summary_text += "  ⚠️  UsageProfile may need retraining\n"
-        summary_text += "  💡 Model infers storage from C-rate=0"
+        summary_text += "  ⚠  UsageProfile may need retraining\n"
+        summary_text += "   Model infers storage from C-rate=0"
     else:
-        summary_text += "  ⚠️  Context vectors are similar\n"
-        summary_text += "  ⚠️  Model may not distinguish well"
+        summary_text += "  ⚠  Context vectors are similar\n"
+        summary_text += "  ⚠  Model may not distinguish well"
     
     ax.text(0.1, 0.5, summary_text, fontsize=10, family='monospace',
             verticalalignment='center', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))

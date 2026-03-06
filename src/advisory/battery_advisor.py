@@ -108,9 +108,9 @@ class BatteryAdvisor:
             state_dict = torch.load(model_path, map_location=self.device, weights_only=False)
             self.model.load_state_dict(state_dict)
             self.model.eval()
-            print(f"✓ Loaded Unified SOH model from {model_path}")
+            print(f" Loaded Unified SOH model from {model_path}")
         except Exception as e:
-            print(f"✗ Error loading unified model: {e}")
+            print(f" Error loading unified model: {e}")
             self.model = None
 
     def _load_pinn_model(self, model_path: str):
@@ -122,9 +122,9 @@ class BatteryAdvisor:
             state_dict = torch.load(model_path, map_location=self.device, weights_only=False)
             self.pinn_model.load_state_dict(state_dict)
             self.pinn_model.eval()
-            print(f"✓ Loaded PINN Causal model from {model_path}")
+            print(f" Loaded PINN Causal model from {model_path}")
         except Exception as e:
-            print(f"✗ Error loading PINN model: {e}")
+            print(f" Error loading PINN model: {e}")
             self.pinn_model = None
     
     def analyze(
@@ -262,7 +262,7 @@ class BatteryAdvisor:
             f"│  Degradation Mode:    {report.mode.value.capitalize():10s}                     │",
             "│                                                            │",
             "├────────────────────────────────────────────────────────────┤",
-            "│  💡 Top Recommendation:                                    │",
+            "│   Top Recommendation:                                    │",
             f"│  {report.top_recommendation[:54]:54s}  │",
             "│                                                            │",
         ]
@@ -273,7 +273,7 @@ class BatteryAdvisor:
         
         lines.extend([
             "├────────────────────────────────────────────────────────────┤",
-            f"│  📊 Trend: {report.rate_status.capitalize():10s} degradation rate                │",
+            f"│   Trend: {report.rate_status.capitalize():10s} degradation rate                │",
         ])
         
         if report.cycles_to_warning:

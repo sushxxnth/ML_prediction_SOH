@@ -25,9 +25,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
-# =============================================================================
 # Baseline Model Definitions
-# =============================================================================
 
 class LSTMBaseline(nn.Module):
     """Standard LSTM for sequence prediction."""
@@ -148,9 +146,7 @@ class MLPBaseline(nn.Module):
         return soh.squeeze(-1), rul.squeeze(-1)
 
 
-# =============================================================================
 # Training and Evaluation Functions
-# =============================================================================
 
 def train_pytorch_model(model, train_loader, epochs=50, lr=0.001):
     """Train a PyTorch model."""
@@ -226,9 +222,7 @@ def train_random_forest(X_train, y_soh_train, y_rul_train, X_test, y_soh_test, y
     }
 
 
-# =============================================================================
 # Data Loading
-# =============================================================================
 
 def load_training_data():
     """Load and prepare training/test data."""
@@ -305,9 +299,7 @@ def load_training_data():
             X[test_idx], soh[test_idx], rul[test_idx])
 
 
-# =============================================================================
 # Main Benchmark
-# =============================================================================
 
 def run_sota_benchmark():
     """Run benchmark comparison of all SOTA methods."""
@@ -437,7 +429,7 @@ def run_sota_benchmark():
     with open(output_path, 'w') as f:
         json.dump(results, f, indent=2)
     
-    print(f"\n✓ Results saved to {output_path}")
+    print(f"\n Results saved to {output_path}")
     
     return results
 

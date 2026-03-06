@@ -255,7 +255,7 @@ def verify_patt_performance(num_runs=5):
     with open(output_file, 'w') as f:
         json.dump(verification_summary, f, indent=2)
     
-    print(f"\n✓ Verification results saved to: {output_file}")
+    print(f"\n Verification results saved to: {output_file}")
     
     # Conclusion
     print("\n" + "="*80)
@@ -263,7 +263,7 @@ def verify_patt_performance(num_runs=5):
     print("="*80)
     
     if np.mean(accuracies) > 0.95 and np.std(accuracies) < 0.05:
-        print("✓ VERIFIED: Results are consistent and high across multiple runs.")
+        print(" VERIFIED: Results are consistent and high across multiple runs.")
         print("  - Mean accuracy > 95%")
         print("  - Low variance (std < 5%)")
         print("  - No evidence of data leakage or hardcoding")

@@ -143,14 +143,14 @@ def add_xjtu_to_memory_bank():
     
     model.load_state_dict(torch.load(model_path, weights_only=False, map_location='cpu'))
     model.eval()
-    print(f"✓ Loaded model from {model_path}")
+    print(f" Loaded model from {model_path}")
     
     # Load existing TJU entries
     tju_entries_path = Path("data/memory_bank_tju_entries.pkl")
     if tju_entries_path.exists():
         with open(tju_entries_path, 'rb') as f:
             existing_entries = pickle.load(f)
-        print(f"✓ Loaded {len(existing_entries)} existing TJU entries")
+        print(f" Loaded {len(existing_entries)} existing TJU entries")
     else:
         existing_entries = []
     
@@ -244,8 +244,8 @@ def add_xjtu_to_memory_bank():
     with open(stats_path, 'w') as f:
         json.dump(stats, f, indent=2)
     
-    print(f"\n✓ Combined entries saved to {output_path}")
-    print(f"✓ Stats saved to {stats_path}")
+    print(f"\n Combined entries saved to {output_path}")
+    print(f" Stats saved to {stats_path}")
     
     return stats
 

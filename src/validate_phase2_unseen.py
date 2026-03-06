@@ -322,7 +322,7 @@ def main():
     
     print("\nVALIDATION COMPLETE")
     if avg_mae < 0.1:
-        print("✓ Model generalizes well - learned physics principles!")
+        print(" Model generalizes well - learned physics principles!")
     else:
         print("⚠ Model may need more training or domain adaptation")
 

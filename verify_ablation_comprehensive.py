@@ -220,7 +220,7 @@ def main():
         try:
             model.load_state_dict(torch.load(wf, map_location='cpu', weights_only=True))
         except Exception as e:
-            print(f"  ✗ Failed to load: {e}\n")
+            print(f"   Failed to load: {e}\n")
             continue
         model.eval()
 

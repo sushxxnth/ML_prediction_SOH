@@ -99,7 +99,7 @@ def add_tju_to_memory_bank():
     
     model.load_state_dict(torch.load(model_path, weights_only=False, map_location='cpu'))
     model.eval()
-    print(f"✓ Loaded fine-tuned model from {model_path}")
+    print(f" Loaded fine-tuned model from {model_path}")
     
     # Get current memory bank size
     initial_size = model.memory_bank.size()
@@ -150,7 +150,7 @@ def add_tju_to_memory_bank():
     # Save updated model with populated memory bank
     output_path = Path("reports/hero_model/hero_model_with_tju_memory.pt")
     torch.save(model.state_dict(), output_path)
-    print(f"\n✓ Model with TJU memory saved to {output_path}")
+    print(f"\n Model with TJU memory saved to {output_path}")
     
     # Save memory bank stats
     stats = {
@@ -164,7 +164,7 @@ def add_tju_to_memory_bank():
     stats_path = Path("reports/hero_model/memory_bank_stats.json")
     with open(stats_path, 'w') as f:
         json.dump(stats, f, indent=2)
-    print(f"✓ Memory bank stats saved to {stats_path}")
+    print(f" Memory bank stats saved to {stats_path}")
     
     return stats
 

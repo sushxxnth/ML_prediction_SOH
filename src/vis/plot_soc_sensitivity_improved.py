@@ -131,7 +131,7 @@ def create_improved_soc_plot(model_path, data_root, output_dir, device='cpu'):
     data = evaluate_for_plotting(model, test_loader, device)
     
     if data is None or len(data['soc']) == 0:
-        print("⚠️  No data for plotting")
+        print("⚠  No data for plotting")
         return
     
     soc = data['soc']

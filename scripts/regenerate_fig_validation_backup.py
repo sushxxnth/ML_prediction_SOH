@@ -15,9 +15,7 @@ import matplotlib.colors as mcolors
 
 fig = plt.figure(figsize=(14, 10))
 
-# ============================================================
 # Panel A: Per-Dataset Accuracy (horizontal bar chart)
-# ============================================================
 ax_a = fig.add_axes([0.05, 0.55, 0.42, 0.40])
 ax_a.text(-0.08, 1.08, 'a', fontsize=16, fontweight='bold', transform=ax_a.transAxes)
 ax_a.set_title('Per-Dataset Accuracy', fontsize=13, fontweight='bold', pad=10)
@@ -52,9 +50,7 @@ ax_a.set_xlabel('Accuracy (%)', fontsize=10)
 ax_a.spines['top'].set_visible(False)
 ax_a.spines['right'].set_visible(False)
 
-# ============================================================
 # Panel B: 5x5 Confusion Matrix
-# ============================================================
 ax_b = fig.add_axes([0.55, 0.55, 0.40, 0.40])
 ax_b.text(-0.08, 1.08, 'b', fontsize=16, fontweight='bold', transform=ax_b.transAxes)
 ax_b.set_title('5×5 Confusion Matrix', fontsize=13, fontweight='bold', pad=10)
@@ -115,9 +111,7 @@ ax_b.xaxis.tick_top()
 cbar = plt.colorbar(im, ax=ax_b, fraction=0.046, pad=0.04)
 cbar.ax.tick_params(labelsize=8)
 
-# ============================================================
 # Panel C: Mechanism-Specific Recall
-# ============================================================
 ax_c = fig.add_axes([0.05, 0.06, 0.40, 0.38])
 ax_c.text(-0.08, 1.08, 'c', fontsize=16, fontweight='bold', transform=ax_c.transAxes)
 ax_c.set_title('Mechanism-Specific Recall', fontsize=13, fontweight='bold', pad=10)
@@ -152,9 +146,7 @@ ax_c.set_ylabel('Recall (%)', fontsize=10)
 ax_c.spines['top'].set_visible(False)
 ax_c.spines['right'].set_visible(False)
 
-# ============================================================
 # Panel D: Architecture Comparison
-# ============================================================
 ax_d = fig.add_axes([0.55, 0.06, 0.40, 0.38])
 ax_d.text(-0.08, 1.08, 'd', fontsize=16, fontweight='bold', transform=ax_d.transAxes)
 ax_d.set_title('Architecture Comparison', fontsize=13, fontweight='bold', pad=10)

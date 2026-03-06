@@ -1,24 +1,12 @@
 """
 Counterfactual Intervention Optimization for Battery Health Management
 
-Novel approach: Uses causal counterfactual inference to recommend optimal
-short-term interventions based on current degradation mechanisms.
+Uses causal counterfactual inference to recommend optimal short-term
+operating interventions based on current degradation mechanism attribution.
 
-Key Innovation:
-- Takes Hybrid PINN causal attribution (92% accurate)
-- Simulates "what if" scenarios under different operating conditions
-- Recommends interventions that minimize harmful mechanisms
-- Interpretable: shows why each recommendation works
-
-Example:
-    Current: 60% lithium plating, 25% SEI, 15% AM loss
-    
-    Simulator tests:
-    - "What if current reduced to 1.5A?" → 20% plating
-    - "What if temp increased to 25°C?" → 10% plating
-    - "What if both?" → 5% plating (BEST!)
-    
-    Recommendation: "Warm to 25°C and reduce to 1.5A → -90% plating risk"
+The simulator tests candidate interventions (e.g., "reduce current to 1.5A")
+by predicting how mechanism attribution would change, then ranks them by
+a weighted improvement score.
 """
 
 import numpy as np
@@ -132,7 +120,6 @@ class CounterfactualSimulator:
         self.pinn = hybrid_pinn_model
         
         # Mechanism sensitivity parameters derived from electrochemical literature
-        # ---------------------------------------------------------------
         # Li plating: quadratic current dependence (Petzl & Danzer 2015),
         #   Arrhenius temp dependence (Waldmann et al. 2014)
         # SEI growth: Pinson & Bazant (2013) model, Ea ≈ 0.4 eV
@@ -140,7 +127,6 @@ class CounterfactualSimulator:
         # AM loss: particle cracking stress ∝ C^1.5 (Birkl et al. 2017)
         # Electrolyte: Arrhenius oxidation (Waldmann et al. 2014)
         # Corrosion: voltage-dependent Cu dissolution above ~3.3 V
-        # ---------------------------------------------------------------
         self.mechanism_params = {
             'lithium_plating': {
                 'current_sensitivity': 2.0,   # ~Quadratic (Petzl 2015)
@@ -521,7 +507,7 @@ def format_recommendation(rec: Dict) -> str:
     score = rec['score']
     
     output = []
-    output.append(f"✓ {intervention.description}")
+    output.append(f" {intervention.description}")
     output.append(f"  Score: {score:.3f}")
     output.append(f"  Dominant mechanism: {rec['dominant_mechanism_before']} → {rec['dominant_mechanism_after']}")
     
@@ -591,5 +577,5 @@ if __name__ == "__main__":
     for i, rec in enumerate(recommendations, 1):
         rec['current_attribution'] = current_attribution
         print(f"\n{i}. {format_recommendation(rec)}")
-    
-    print(f"\n✅ Counterfactual optimizer working!")
+
+    print(f"\nCounterfactual optimizer working!")

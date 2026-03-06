@@ -46,9 +46,7 @@ def chemistry_to_id(chemistry: "ChemistryContext") -> int:
     return CHEM_ID_MAP.get(chemistry.name, 0)
 
 
-# =============================================================================
 # Context Enumerations
-# =============================================================================
 
 class TemperatureContext(Enum):
     """Temperature operating conditions"""
@@ -202,9 +200,7 @@ class CRateContext(Enum):
         return 5
 
 
-# =============================================================================
 # Extended Context Data Class
-# =============================================================================
 
 @dataclass
 class ExtendedBatteryContext:
@@ -385,9 +381,7 @@ class ExtendedBatteryContext:
                 f"src={self.source_dataset})")
 
 
-# =============================================================================
 # Context Dimension Constants
-# =============================================================================
 
 CONTEXT_DIMS = {
     'temperature': TemperatureContext.num_categories(),
@@ -407,9 +401,7 @@ TOTAL_ONE_HOT_DIM = sum([
 TOTAL_HYBRID_DIM = TOTAL_ONE_HOT_DIM + CONTEXT_DIMS['continuous']
 
 
-# =============================================================================
 # Helper Functions
-# =============================================================================
 
 def create_context_from_metadata(
     temperature_c: Optional[float] = None,
@@ -527,9 +519,7 @@ def context_similarity(
     return score
 
 
-# =============================================================================
 # Dataset-Specific Context Builders
-# =============================================================================
 
 def create_nasa_context(cell_id: str, ambient_temp: float = 24.0) -> ExtendedBatteryContext:
     """Create context for NASA dataset cells."""
@@ -616,9 +606,7 @@ def create_tbsi_sunwoda_context(
     )
 
 
-# =============================================================================
 # Testing
-# =============================================================================
 
 if __name__ == '__main__':
     print("="*60)

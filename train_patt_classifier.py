@@ -38,9 +38,7 @@ from src.models.physics_aware_transformer import PATTDomainClassifier, PATTConfi
 from src.data.unified_pipeline import UnifiedDataPipeline
 
 
-# =============================================================================
 # Dataset
-# =============================================================================
 
 class DomainClassificationDataset(Dataset):
     """Dataset for storage vs cycling classification."""
@@ -67,9 +65,7 @@ class DomainClassificationDataset(Dataset):
         return item
 
 
-# =============================================================================
 # Data Loading - REAL DATA
-# =============================================================================
 
 def load_data(data_root: str = 'data'):
     """Load cycling and storage data from REAL datasets.
@@ -299,9 +295,7 @@ def _generate_synthetic_data():
     return features[idx], labels[idx], temps[idx], times[idx]
 
 
-# =============================================================================
 # Training
-# =============================================================================
 
 def train_patt(
     data_root: str = 'data',
@@ -579,7 +573,7 @@ def train_patt(
     plt.savefig(output_path / 'patt_training_curves.png', dpi=150)
     plt.close()
     
-    print(f"\n✓ Training complete!")
+    print(f"\n Training complete!")
     print(f"  Model saved to: {output_path / 'patt_best.pt'}")
     print(f"  Results saved to: {output_path / 'patt_results.json'}")
     print(f"  Plots saved to: {output_path / 'patt_training_curves.png'}")

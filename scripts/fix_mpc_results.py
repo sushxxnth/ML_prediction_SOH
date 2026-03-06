@@ -30,7 +30,7 @@ def fix_mpc_validation_results():
     temp_reduction = data.get("comparison", {}).get("temp_reduction_celsius", 0)
     
     if temp_reduction > 1e10:  # Clearly an overflow
-        print(f"🔍 Found numerical overflow: {temp_reduction:.2e}")
+        print(f" Found numerical overflow: {temp_reduction:.2e}")
         print("🔧 Fixing by removing corrupted comparison data...")
         
         # Option 1: Remove the entire comparison section
@@ -52,7 +52,7 @@ def fix_mpc_validation_results():
             json.dump(data, f, indent=2)
         
         print(f"✅ Fixed MPC results saved to: {mpc_file}")
-        print("\n⚠️  RECOMMENDATION: Do NOT cite MPC temperature reduction in the paper")
+        print("\n⚠  RECOMMENDATION: Do NOT cite MPC temperature reduction in the paper")
         print("   The MPC controller needs to be re-run with proper numerical safeguards.")
         
         return True
