@@ -25,7 +25,7 @@ data/nasa_set5/
 nasa_battery_set5.zip
 
 # Model checkpoints
-models/
+/models/
 *.pt
 
 # Large pickle files
