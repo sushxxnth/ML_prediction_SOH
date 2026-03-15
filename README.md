@@ -43,7 +43,7 @@ The framework comprises four integrated modules:
 
 | Metric | Result | Significance |
 |--------|--------|--------------|
-| **Causal Attribution Accuracy** | 96.0% | Verifiable mechanism diagnosis across 5 diverse datasets. |
+| **Causal Attribution Accuracy** | 96.0% (95% CI: 90.7–100.0%) | Verifiable mechanism diagnosis across 5 chemistry and condition groups. |
 | **Zero-Shot RUL (MAE)** | 44.0 cycles | 55% error reduction on unseen NCA chemistry vs. LSTM baselines. |
 | **Early Warning Lead Time** | 99 cycles | Enables proactive intervention prior to failure onset. |
 | **SOH Prediction (HERO)** | 99.0% R² | Robust trajectory forecasting across chemistries. |
@@ -147,17 +147,29 @@ ML_prediction_SOH/
 
 ## The Data
 
-We didn't just test on one dataset. We used 5 independent sources with different chemistries, temperatures, and driving patterns:
+The framework is trained and validated on two complementary sets of publicly available datasets encompassing four lithium-ion chemistries (LCO, NCM, NCA, LFP) and diverse operating conditions (-40°C to 50°C, 0.5C to 8C rates).
+
+**HERO Memory Bank** (retrieval-augmented prediction — 3,979 trajectories, 76 cells):
 
 | Dataset | What It Is | Cells | Why It Matters |
 |---------|------------|-------|----------------|
 | **NASA Ames** | Various temps & chemistries | 34 | The gold standard for battery research |
 | **CALCE** | Maryland's battery tests | 18 | Real manufacturers, real conditions |
 | **Oxford** | High-precision tracking | 8 | Extremely clean, controlled data |
-| **TJU** | Tongji University | 40 | Zero-shot transfer testing |
+| **TJU** | Tongji University | 40 | Cross-chemistry transfer testing |
 | **XJTU** | High C-rate stress | 26 | Aggressive driving scenarios |
 
-**Total**: 3,979 degradation trajectories from 76 cells. If it works here, it works in the real world.
+**Attribution & Advisory Validation** (five chemistry and condition groups — 75 benchmark scenarios):
+
+| Group | Conditions | Scenarios |
+|-------|------------|----------|
+| NASA Ames | 4–43°C, 0.5–2C | 15 |
+| Panasonic EV | US06, HWFET, LA92, UDDS drive cycles | 15 |
+| Nature MATR | 1C–8C fast charging | 15 |
+| Randomized | 40°C high-temperature stress | 15 |
+| HUST LFP | Various LFP cycling protocols | 15 |
+
+> **Note:** The two evaluation suites share no test overlap, ensuring unbiased cross-evaluation.
 
 ---
 
@@ -166,11 +178,11 @@ We didn't just test on one dataset. We used 5 independent sources with different
 ### HERO: Hybrid Estimation via Retrieval Optimization
 - **What**: Retrieval-augmented RUL prediction with cross-attention
 - **Performance**: 99% R² on SOH, 55% better than baselines on new chemistries
-- **Weights**: `reports/fleet_rad/rad_finetuned_best.pt`
+- **Weights**: `reports/hero_model/hero_model.pt`
 
 ### Hybrid PINN: Physics-Informed Neural Network with Expert Priors
 - **What**: 5-head network that attributes capacity loss to specific mechanisms
-- **Performance**: 96% accuracy (expert priors add 14.7 percentage points!)
+- **Performance**: 96% accuracy (bootstrap 95% CI: 90.7–100.0%; expert priors add **18.7 percentage points** over boundary-aware baseline!)
 - **Weights**: `reports/pinn_causal/pinn_causal_retrained.pt`
 
 ### PATT: Physics-Aware Temporal Transformer
