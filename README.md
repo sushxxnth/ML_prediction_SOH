@@ -210,7 +210,7 @@ python3 src/train/hero_rad_decoupled.py
 python3 test_unified_validation.py
 ```
 
-**Note**: Training requires the full datasets. Results in the paper used the pre-trained weights included in `reports/`.
+**Note**: Training requires the full datasets. See **[TRAINING_GUIDE.md](TRAINING_GUIDE.md)** for detailed instructions including dataset download links, expected directory structure, and training times.
 
 ---
 
