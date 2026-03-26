@@ -216,7 +216,6 @@ python3 test_unified_validation.py
 
 ## Authors
 
-This is a collaboration between Bangalore University and IIT Delhi:
 
 **Sushanth Chandrashekar**  
 Computer Science & Engineering, Bangalore University  
