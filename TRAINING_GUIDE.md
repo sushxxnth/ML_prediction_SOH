@@ -107,7 +107,7 @@ python3 verify_patt_performance.py  # PATT test
 
 ## Quick Start on Google Colab
 
-If the PI wants to avoid local setup, this Colab cell does everything:
+If the one wants to avoid local setup, this Colab cell does everything:
 
 ```python
 !git clone https://github.com/sushxxnth/ML_prediction_SOH.git
