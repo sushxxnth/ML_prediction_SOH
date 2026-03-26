@@ -77,7 +77,7 @@ python3 download_weights.py
 
 This installs the following into `reports/` (gitignored, local only):
 - `pinn_causal_retrained.pt` — Hybrid PINN (96.0% causal accuracy)
-- `patt_best.pt` — PATT domain classifier (99.6% accuracy)
+- `patt_best.pt` — PATT domain classifier (99.2% accuracy)
 - `hero_model.pt` — HERO prediction model (SOH R²=99%, RUL MAE=44 cycles)
 - Verification result JSON files
 
@@ -187,7 +187,7 @@ The framework is trained and validated on two complementary sets of publicly ava
 
 ### PATT: Physics-Aware Temporal Transformer
 - **What**: Classifies whether the battery is being used or stored
-- **Performance**: 99.6% accuracy, 100% recall on cycling (never misses active use)
+- **Performance**: 99.2% accuracy, 100% recall on cycling (never misses active use)
 - **Weights**: `reports/patt_classifier/patt_model.pt`
 
 ---
@@ -201,7 +201,7 @@ If you want to retrain from scratch (not needed for verification):
 python3 src/train/train_causal.py
 
 # Train domain classifier
-python3 src/train/train_patt_classifier.py
+python3 train_patt_classifier.py
 
 # Train HERO
 python3 src/train/hero_rad_decoupled.py
