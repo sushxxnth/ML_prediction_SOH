@@ -2,7 +2,7 @@
 
 ## Overview
 
-Your PI wants to retrain all models end-to-end. There are **3 models** to train, each with its own script. The main blocker is **downloading the raw datasets** (not included in the git repo due to size).
+Retraining all models end-to-end. There are **3 models** to train, each with its own script. The main blocker is **downloading the raw datasets** (not included in the git repo due to size).
 
 ---
 
