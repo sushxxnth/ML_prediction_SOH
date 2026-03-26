@@ -2,9 +2,6 @@
 Downloads pre-trained model weights and verification result files from
 the GitHub Release (v1.0.0) and installs them into the correct directories.
 
-Requires the GitHub CLI (gh) to be authenticated:
-    gh auth login
-
 Run this once after cloning the repository:
     python3 download_weights.py
 
@@ -12,15 +9,18 @@ Then run the full verification:
     python3 REPRODUCE_PAPER_CLAIMS.py
 """
 
-import subprocess
+import urllib.request
 import zipfile
-import shutil
 import sys
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
-REPO     = "sushxxnth/ML_prediction_SOH"
-TAG      = "v1.0.0"
+
+# Direct download URLs for the public GitHub release
+ASSETS = [
+    "https://github.com/sushxxnth/ML_prediction_SOH/releases/download/v1.0.0/model_weights.zip",
+    "https://github.com/sushxxnth/ML_prediction_SOH/releases/download/v1.0.0/verification_results.zip"
+]
 
 EXTRACT_MAP = {
     "pinn_causal_retrained.pt":              BASE_DIR / "reports/pinn_causal/pinn_causal_retrained.pt",
@@ -32,17 +32,14 @@ EXTRACT_MAP = {
     "counterfactual_validation_results.json": BASE_DIR / "reports/counterfactual_validation_results.json",
 }
 
-
-def check_gh():
-    if shutil.which("gh") is None:
-        print("ERROR: GitHub CLI (gh) not found.")
-        print("Install: https://cli.github.com/  then run: gh auth login")
+def download_file(url: str, dest: Path):
+    print(f"Downloading {url.split('/')[-1]}...")
+    try:
+        urllib.request.urlretrieve(url, dest)
+    except Exception as e:
+        print(f"ERROR: Failed to download {url}")
+        print(f"Exception: {e}")
         sys.exit(1)
-    result = subprocess.run(["gh", "auth", "status"], capture_output=True)
-    if result.returncode != 0:
-        print("ERROR: Not logged into gh CLI. Run: gh auth login")
-        sys.exit(1)
-
 
 def extract(zip_path: Path):
     with zipfile.ZipFile(zip_path) as zf:
@@ -55,31 +52,17 @@ def extract(zip_path: Path):
                 dst.write(src.read())
             print(f"  Installed: {target.relative_to(BASE_DIR)}")
 
-
 def main():
-    check_gh()
-
     tmp = BASE_DIR / ".release_tmp"
     tmp.mkdir(exist_ok=True)
 
-    print(f"Downloading release assets ({TAG}) from {REPO}...")
+    print("Fetching release assets (v1.0.0)...")
 
-    result = subprocess.run(
-        ["gh", "release", "download", TAG,
-         "--repo", REPO,
-         "--dir", str(tmp),
-         "--pattern", "*.zip"],
-        capture_output=True, text=True
-    )
-
-    if result.returncode != 0:
-        print(f"ERROR: {result.stderr.strip()}")
-        sys.exit(1)
-
-    downloaded = list(tmp.glob("*.zip"))
-    if not downloaded:
-        print("ERROR: No zip files downloaded.")
-        sys.exit(1)
+    downloaded = []
+    for i, url in enumerate(ASSETS):
+        zip_path = tmp / f"asset_{i}.zip"
+        download_file(url, zip_path)
+        downloaded.append(zip_path)
 
     for zip_path in downloaded:
         print(f"  Extracting {zip_path.name} ...")
