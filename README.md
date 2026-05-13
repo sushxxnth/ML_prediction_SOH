@@ -110,12 +110,12 @@ python3 validate_counterfactual_ground_truth.py
 
 The models were trained and validated on a comprehensive aggregation of publicly available datasets encompassing four lithium-ion chemistries (LCO, NCM, NCA, LFP) and diverse operating conditions (-40°C to 50°C, 0.5C to 8C rates):
 
-1. **NASA Ames Prognostics Data Repository** (34 cells)
-2. **CALCE Battery Research Group** (18 cells)
-3. **Oxford Battery Degradation Dataset** (8 cells)
-4. **TJU (Tongji University)** (40 cells)
-5. **XJTU Battery Dataset** (26 cells)
-6. **Stanford Calendar Aging Dataset** (60 cells)
+1. **[NASA Ames Prognostics Data Repository](https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/)** (34 cells)
+2. **[CALCE Battery Research Group](https://calce.umd.edu/battery-data)** (18 cells)
+3. **[Oxford Battery Degradation Dataset](https://batteryintelligence.web.ox.ac.uk/data-and-code)** (8 cells)
+4. **[TJU (Tongji University)](https://zenodo.org/records/6405084)** (40 cells)
+5. **[XJTU Battery Dataset](https://github.com/Ruifeng-Tan/BatteryLife)** (26 cells)
+6. **[Stanford Calendar Aging Dataset](https://web.stanford.edu/group/chuehgroup/datasets.html)** (60 cells)
 
 ---
 

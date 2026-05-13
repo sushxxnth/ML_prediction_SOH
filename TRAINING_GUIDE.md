@@ -26,17 +26,20 @@ ML_prediction_SOH/
 
 ### Download Links
 
-| Dataset | URL | Used By |
-|---------|-----|---------|
-| NASA Ames | https://ti.arc.nasa.gov/tech/dash/groups/pcoe/prognostic-data-repository/ | All 3 models |
-| CALCE | https://calce.umd.edu/battery-data | Causal, HERO |
-| Oxford | https://www.batteryarchive.org/study_summaries.html | Causal, HERO |
-| TBSI Sunwoda | https://github.com/terencetaothucb/TBSI-Sunwoda-Battery-Dataset | HERO |
-| Stanford Calendar | https://data.matr.io/3/ (Attia et al.) | PATT |
-| XJTU | https://github.com/Ruifeng-Tan/BatteryLife | PATT |
+| Dataset | Download URL | Used By | Notes |
+|---------|-------------|---------|-------|
+| NASA Ames (34 cells) | https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/ | All 3 models | Download "Battery Data Set", extract `.mat` files into `data/nasa_set5/raw/` |
+| CALCE (18 cells) | https://calce.umd.edu/battery-data | Causal, HERO | Download CS2 and CX2 datasets, place in `data/calce/` |
+| Oxford (8 cells) | https://batteryintelligence.web.ox.ac.uk/data-and-code | Causal, HERO | Also on Kaggle: search "Oxford Battery Degradation Dataset 1" |
+| TBSI Sunwoda | https://github.com/terencetaothucb/TBSI-Sunwoda-Battery-Dataset | HERO | `git clone` the repo into `data/tbsi_sunwoda/` |
+| Stanford Calendar Aging (60 cells) | https://web.stanford.edu/group/chuehgroup/datasets.html | PATT | See also OSF: https://osf.io/ (search "decade calendar aging"). Place CSV in `data/stanford_calendar/` |
+| XJTU (26 cells) | https://github.com/Ruifeng-Tan/BatteryLife | PATT | Clone and place battery data in `data/new_datasets/XJTU/Battery Dataset/` |
+| TJU (40 cells) | https://zenodo.org/records/6405084 | Zero-shot eval | Download NCM+NCA dataset, place in `data/new_datasets/RUL-Mamba/data/TJU data/` |
 
 > [!IMPORTANT]
 > **NASA** is the most critical dataset — all 3 models use it. Start there. The pipeline will generate synthetic fallback data for missing datasets, but results will be worse.
+>
+> **If NASA's official page is down**, search Kaggle for "NASA battery dataset B0005 B0006 B0007" to find community mirrors of the same `.mat` files.
 
 ---
 
