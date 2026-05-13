@@ -55,8 +55,11 @@ The framework comprises four integrated modules:
 
 ```bash
 # Clone the repository
+git clone https://github.com/sushxxnth/ML_prediction_SOH.git
+cd ML_prediction_SOH
+
 # Install required dependencies
-pip install torch numpy pandas matplotlib scikit-learn scipy
+pip install torch numpy pandas matplotlib scikit-learn scipy openpyxl
 ```
 
 ---
@@ -68,9 +71,6 @@ The repository includes pre-trained weights and validation scripts to reproduce 
 ### Setup (one-time, after cloning)
 
 ```bash
-# Install dependencies
-pip install torch numpy pandas matplotlib scikit-learn scipy
-
 # Download pre-trained weights and result files (~1 MB)
 python3 download_weights.py
 ```
@@ -85,6 +85,16 @@ This installs the following into `reports/` (gitignored, local only):
 
 ```bash
 python3 REPRODUCE_PAPER_CLAIMS.py
+```
+
+### Google Colab Quick Start
+
+```python
+!git clone https://github.com/sushxxnth/ML_prediction_SOH.git
+%cd ML_prediction_SOH
+!pip install torch numpy pandas matplotlib scikit-learn scipy openpyxl
+!python3 download_weights.py
+!python3 REPRODUCE_PAPER_CLAIMS.py
 ```
 
 ### Specific Verifications
@@ -194,23 +204,25 @@ The framework is trained and validated on two complementary sets of publicly ava
 
 ## Training Your Own Models
 
-If you want to retrain from scratch (not needed for verification):
+Training requires the raw datasets (~2.7 GB). Download them first:
+
+**📥 [Download all datasets (Google Drive)](https://drive.google.com/file/d/1FMSJ8T4dIHcE_WFxYvfjc6Qr1zJF2Mei/view?usp=sharing)**
 
 ```bash
+# Unzip into repo root (creates data/ folder)
+unzip ML_SOH_datasets.zip
+
 # Train causal attribution
-python3 src/train/train_causal.py
+python3 src/train/train_causal.py --epochs 100
 
 # Train domain classifier
-python3 train_patt_classifier.py
+python3 train_patt_classifier.py --epochs 50
 
 # Train HERO
-python3 src/train/hero_rad_decoupled.py
-
-# Full evaluation suite
-python3 test_unified_validation.py
+python3 src/train/hero_rad_decoupled.py --pretrain_epochs 100 --finetune_epochs 30
 ```
 
-**Note**: Training requires the full datasets. See **[TRAINING_GUIDE.md](TRAINING_GUIDE.md)** for detailed instructions including dataset download links, expected directory structure, and training times.
+See **[TRAINING_GUIDE.md](TRAINING_GUIDE.md)** for full details including Colab instructions and expected results.
 
 ---
 
