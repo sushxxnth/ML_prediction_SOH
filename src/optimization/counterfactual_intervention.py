@@ -118,10 +118,11 @@ class CounterfactualSimulator:
                               If None, uses physics-based approximation
         """
         self.pinn = hybrid_pinn_model
-        
+
         # Mechanism sensitivity parameters derived from electrochemical literature
         # Li plating: quadratic current dependence (Petzl & Danzer 2015),
-        #   Arrhenius temp dependence (Waldmann et al. 2014)
+        #   temperature handled separately, see _plating_temp_factor
+        # (was: Arrhenius temp dependence (Waldmann et al. 2014))
         # SEI growth: Pinson & Bazant (2013) model, Ea ≈ 0.4 eV
         #   (Broussely et al. 2005)
         # AM loss: particle cracking stress ∝ C^1.5 (Birkl et al. 2017)
@@ -130,7 +131,7 @@ class CounterfactualSimulator:
         self.mechanism_params = {
             'lithium_plating': {
                 'current_sensitivity': 2.0,   # ~Quadratic (Petzl 2015)
-                'temp_sensitivity': -0.15,    # Worse at low temp (Arrhenius)
+                'temp_sensitivity': None,     # see _plating_temp_factor
                 'soc_sensitivity': 0.5        # Worse at low SOC
             },
             'sei_growth': {
@@ -215,7 +216,9 @@ class CounterfactualSimulator:
             delta_current_norm,
             delta_temp_norm,
             delta_soc_norm,
-            'lithium_plating'
+            'lithium_plating',
+            temp_from=current_state.temperature,
+            temp_to=new_state.temperature,
         )
         
         new_sei = self._update_mechanism(
@@ -268,27 +271,85 @@ class CounterfactualSimulator:
             corrosion=np.clip(new_corrosion, 0, 1)
         )
     
+    # Plating temperature law, shared with LithiumPlatingEquation
+    # (src/models/pinn_physics_module.py) and rate_plating() in
+    # scripts/compute_life_extension.py so that all three agree.
+    T_CRIT_PLATING = 278.15   # 5 C, onset of plating
+    T_GATE_WIDTH = 5.0        # sigmoid width of the cold gate
+    T_REF_PLATING = 298.15    # 25 C reference
+    T_SCALE_PLATING = 10.0    # enhancement scale below reference
+    PLATING_ACTIVITY_FLOOR = 0.1   # f_T below this: plating is not a live mechanism
+    PLATING_RATIO_CAP = 10.0       # same bound as the aggregate scale-factor guard
+
+    def _plating_temp_factor(self, temp_c: float) -> float:
+        """Temperature factor of the plating rate law (Eq. plating_physics):
+
+            f_T(T) = sigma((T_crit - T) / delta_T) * exp((T_ref - T) / tau_T)
+
+        Plating is gated: it effectively switches off above ~5 C rather than
+        declining in proportion to Delta T. A single linear temp_sensitivity
+        cannot represent that -- a coefficient fitted near T_crit understates
+        the benefit of warming by more than an order of magnitude, which is why
+        the previous linear term predicted that warming a 4 C cell to 24 C left
+        plating dominant, contradicting the measured NASA 4 C / 24 C groups.
+        """
+        T = temp_c + 273.15
+        gate = 1.0 / (1.0 + np.exp(-(self.T_CRIT_PLATING - T) / self.T_GATE_WIDTH))
+        enhance = min(np.exp((self.T_REF_PLATING - T) / self.T_SCALE_PLATING), 10.0)
+        return gate * enhance
+
+    def _plating_temp_ratio(self, temp_from: float, temp_to: float) -> float:
+        """Counterfactual/factual ratio of the plating temperature factor.
+
+        Two guards, both needed because the factor is gated:
+
+        1. When both endpoints sit far above the plating onset the ratio is one
+           negligible rate over another -- numerically explosive but physically
+           empty (cooling from 43 C to 24 C cannot initiate plating). Hold the
+           attribution fixed instead.
+        2. Otherwise cap amplification at PLATING_RATIO_CAP, the same 10x bound
+           applied to the aggregate scale factor S, so a mechanism sitting at
+           its attribution floor cannot dominate the renormalized result.
+        """
+        f_from = self._plating_temp_factor(temp_from)
+        f_to = self._plating_temp_factor(temp_to)
+        if (f_from < self.PLATING_ACTIVITY_FLOOR
+                and f_to < self.PLATING_ACTIVITY_FLOOR):
+            return 1.0
+        return min(f_to / max(f_from, 1e-12), self.PLATING_RATIO_CAP)
+
     def _update_mechanism(
         self,
         current_value: float,
         delta_current: float,
         delta_temp: float,
         delta_soc: float,
-        mechanism_name: str
+        mechanism_name: str,
+        temp_from: Optional[float] = None,
+        temp_to: Optional[float] = None,
     ) -> float:
-        """Update single mechanism based on operating condition changes."""
+        """Update single mechanism based on operating condition changes.
+
+        For lithium plating, temperature enters through the gated rate law
+        rather than the linear sensitivity; temp_from/temp_to carry the
+        absolute temperatures (deg C) that the gate needs.
+        """
         params = self.mechanism_params[mechanism_name]
-        
+
         # Compute sensitivity-weighted change
         change = (
             params['current_sensitivity'] * delta_current +
-            params['temp_sensitivity'] * delta_temp +
             params['soc_sensitivity'] * delta_soc
         )
-        
+        if params['temp_sensitivity'] is not None:
+            change += params['temp_sensitivity'] * delta_temp
+
         # Apply change (multiplicative)
         new_value = current_value * (1 + change)
-        
+
+        if mechanism_name == 'lithium_plating' and temp_from is not None:
+            new_value *= self._plating_temp_ratio(temp_from, temp_to)
+
         return max(0, new_value)
     
     def _pinn_predict(self, state: BatteryState) -> CausalAttribution:

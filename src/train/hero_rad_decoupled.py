@@ -403,9 +403,12 @@ def evaluate_model(model: nn.Module, dataloader: DataLoader, device: str) -> Dic
             
             soh_pred, rul_pred, _, _ = model(features, context, chem_id)
             
-            all_soh_pred.extend(soh_pred.squeeze().cpu().numpy())
+            # squeeze(-1) drops only the trailing prediction dim; a bare squeeze()
+            # also collapses the batch dim when a loader's last batch holds a
+            # single sample, producing a 0-d array that extend() cannot iterate.
+            all_soh_pred.extend(soh_pred.squeeze(-1).cpu().numpy())
             all_soh_true.extend(batch['soh'].numpy())
-            all_rul_pred.extend(rul_pred.squeeze().cpu().numpy())
+            all_rul_pred.extend(rul_pred.squeeze(-1).cpu().numpy())
             all_rul_true.extend(batch['rul_normalized'].numpy())
     
     soh_pred = np.array(all_soh_pred)

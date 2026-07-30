@@ -267,8 +267,10 @@ class CausalAttributionModel(nn.Module):
         Compute physics prior score based on context with conditional interactions.
         
         Context indices: 0=temp, 1=charge_rate, 2=discharge_rate, 3=soc, 4=profile, 5=mode
-        Mode: 0=cycling, 0.5=mixed, 1=storage
-        
+        Mode: 1=cycling, 0.5=mixed, 0=storage
+        (matches is_actual_cycling = mode > 0.7 below and make_context() in
+         test_unified_validation.py; do NOT invert -- the storage boost keys off it)
+
         Args:
             mechanism: Degradation mechanism to compute score for
             context: Normalized context tensor

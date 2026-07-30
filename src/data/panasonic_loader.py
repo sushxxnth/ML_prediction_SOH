@@ -43,7 +43,12 @@ class Panasonic18650PFLoader(BaseBatteryLoader):
     
     @property
     def default_chemistry(self) -> str:
-        return "NMC"  # Panasonic 18650PF is typically NMC
+        # NOTE: the physical NCR18650PF cell is NCA (LiNiCoAlO2) per the
+        # Panasonic datasheet. The "NMC" label is retained because trained
+        # checkpoints embed chem_id with this mapping; both ids are equally
+        # unseen during LCO-only zero-shot training, so the zero-shot
+        # protocol is unaffected. Retrain before changing this value.
+        return "NMC"
     
     @property
     def default_temperature(self) -> float:

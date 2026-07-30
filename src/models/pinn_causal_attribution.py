@@ -243,7 +243,28 @@ class PINNCausalAttributionModel(nn.Module):
         
         # 3. Combine: Final = Prior + Residual(NN)
         # Using a learned gate or simple addition
-        final_logits = prior_logits + nn_logits
+        # use_physics_priors=False gives the pure data-driven variant
+        # (identical architecture, no rule-based prior injection)
+        if self.use_physics_priors:
+            final_logits = prior_logits + nn_logits
+            # Hard physical constraint: lithium plating requires an active
+            # (charging) intercalation current. During storage/rest there is no
+            # current, so plating is physically impossible and the NN residual
+            # must not be able to override the zero plating prior. Mask the
+            # plating logit to -inf wherever the cell is not cycling, so its
+            # post-softmax attribution is exactly zero regardless of the NN.
+            is_cycling = (context[:, 5] > 0.7).unsqueeze(-1)  # [B, 1]
+            plating_idx = self.mechanisms.index(DegradationMechanism.LITHIUM_PLATING)
+            col_is_plating = torch.zeros(
+                final_logits.shape[-1], dtype=torch.bool, device=final_logits.device
+            )
+            col_is_plating[plating_idx] = True
+            force_neg = col_is_plating.unsqueeze(0) & (~is_cycling)  # [B, M]
+            final_logits = torch.where(
+                force_neg, torch.full_like(final_logits, -1e4), final_logits
+            )
+        else:
+            final_logits = nn_logits
         
         attributions = F.softmax(final_logits, dim=-1)
         

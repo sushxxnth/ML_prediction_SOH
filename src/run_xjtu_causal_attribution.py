@@ -78,14 +78,19 @@ def load_xjtu_for_attribution():
                     features[7] = 0.0                                 # Placeholder
                     features[8] = 0.0                                 # Placeholder
                     
-                    # Context: [temp, charge_rate, discharge_rate, soc, profile, mode]
+                    # Context normalization MUST match the canonical make_context()
+                    # in test_unified_validation.py -- the convention the physics
+                    # priors were validated against: temp (T-25)/20, charge/3,
+                    # discharge/4, mode cycling=1.0 / storage=0.0. XJTU protocol:
+                    # charge at the batch C-rate, discharge at 1C, 25 C, cycling.
+                    # [temp, charge_rate, discharge_rate, soc, profile, mode]
                     context = np.array([
-                        25.0 / 60.0,       # Room temperature (normalized)
-                        c_rate / 4.0,      # Charge rate normalized (max 4C)
-                        c_rate / 4.0,      # Discharge rate (same as charge for XJTU)
-                        0.5,               # Mid SOC
-                        0.0,               # Constant current profile
-                        0.0                # Cycling mode (not storage)
+                        (25.0 - 25.0) / 20.0,   # 25 C room temperature -> 0.0
+                        c_rate / 3.0,           # charge at the batch C-rate
+                        1.0 / 4.0,              # discharge at 1C
+                        0.5,                    # mid SOC
+                        0.0,                    # constant-current profile
+                        1.0                     # cycling mode (1.0 = cycling)
                     ], dtype=np.float32)
                     
                     samples.append({

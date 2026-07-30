@@ -160,7 +160,15 @@ def parse_mat_cell(mat_path: str) -> Tuple[str, List[pd.DataFrame], Dict[str, An
         if hasattr(root, attr):
             meta[attr] = getattr(root, attr)
 
+    # ambient_temperature is NOT a root-level field in these .mat files -- it's
+    # recorded per cycle (root.cycle[i].ambient_temperature). The loop above
+    # never finds it on `root`, so meta['ambient_temperature'] was silently
+    # absent and every NASA cell fell back to unified_pipeline.py's 24.0
+    # default, including the 4 C (B0046/47/48) and 43 C (B0029) cells. Pull it
+    # from the cycles themselves; NASA cells run at a single ambient per cell,
+    # so the median across cycles is a robust cell-level value.
     cycles = []
+    ambient_temps = []
     if hasattr(root, 'cycle'):
         cyc = root.cycle
         if isinstance(cyc, np.ndarray):
@@ -172,12 +180,21 @@ def parse_mat_cell(mat_path: str) -> Tuple[str, List[pd.DataFrame], Dict[str, An
                 ctype = str(getattr(c, 'type'))
             else:
                 ctype = 'unknown'
+            if hasattr(c, 'ambient_temperature'):
+                try:
+                    at = np.asarray(getattr(c, 'ambient_temperature')).ravel()
+                    if at.size > 0:
+                        ambient_temps.append(float(at[0]))
+                except Exception:
+                    pass
             df = _extract_cycle_rows(c)
             if df.empty:
                 continue
             df['cycle_index'] = idx
             df['cycle_type'] = ctype
             cycles.append(df)
+        if ambient_temps and 'ambient_temperature' not in meta:
+            meta['ambient_temperature'] = float(np.median(ambient_temps))
     else:
         # Some variants have 'data' directly
         if hasattr(root, 'data'):

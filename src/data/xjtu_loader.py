@@ -56,6 +56,11 @@ class XJTULoader(BaseBatteryLoader):
     
     @property
     def default_chemistry(self) -> str:
+        # NOTE: XJTU cells are physically NCM (LiNi0.5Co0.2Mn0.3O2, per the
+        # dataset publication). The "LCO" label is retained because trained
+        # checkpoints embed chem_id with this mapping; XJTU is not used as a
+        # zero-shot target, so no cross-chemistry claim depends on this id.
+        # Retrain before changing this value.
         return "LCO"
     
     @property
