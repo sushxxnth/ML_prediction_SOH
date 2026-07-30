@@ -3,8 +3,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-1.9+-ee4c2c.svg)](https://pytorch.org/)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/sushxxnth/ML_prediction_SOH/blob/main/Reproduce_Paper_Results.ipynb)
 
-> **Paper**: "Analyzing Degradation and Extending Life of Electric Vehicle Batteries using Physics-Aware Transformers"  
+> **Paper**: "Analyzing Degradation and Extending Life of Electric Vehicle Batteries using Physics-Aware Transformers"
+
+> **Reproduce every reported number in ~5 minutes:** click **Open in Colab** above, or run `python3 reproduce_paper_results.py` locally. See [Reproducing Paper Results](#reproducing-paper-results).
 
 
 ---
@@ -67,20 +70,37 @@ pip install torch numpy pandas matplotlib scikit-learn scipy openpyxl
 
 ## Reproducing Paper Results
 
-The repository includes pre-trained weights and validation scripts to reproduce all quantitative claims in the manuscript. Model weights are hosted as a [GitHub Release](https://github.com/sushxxnth/ML_prediction_SOH/releases/tag/v1.0.0) to keep the repository lightweight.
+The repository includes pre-trained weights and validation scripts to reproduce all quantitative claims in the manuscript. Checkpoints and result artifacts are hosted as a [GitHub Release (v1.1.0)](https://github.com/sushxxnth/ML_prediction_SOH/releases/tag/v1.1.0) to keep the repository lightweight.
 
-### Setup (one-time, after cloning)
+### Fastest path — Google Colab (no local setup)
+
+Click the **[Open in Colab](https://colab.research.google.com/github/sushxxnth/ML_prediction_SOH/blob/main/Reproduce_Paper_Results.ipynb)** badge (or open `Reproduce_Paper_Results.ipynb`) and **Runtime → Run all**. A free CPU runtime is enough; the whole notebook takes about 5 minutes and prints a table of all 27 reported numbers with `PASS`/`FAIL`. A fully green run shows `PASS 27  FAIL 0`. No GPU, no dataset download, and no manual setup are required — the notebook clones the repo, installs dependencies, downloads the released artifacts, and runs the verifier.
+
+### Setup (one-time, after cloning locally)
 
 ```bash
-# Download pre-trained weights and result files (~1 MB)
+# Download pre-trained weights and result files (~1.3 MB)
 python3 download_weights.py
 ```
 
-This installs the following into `reports/` (gitignored, local only):
-- `pinn_causal_retrained.pt` — Hybrid PINN (96.0% causal accuracy)
-- `patt_best.pt` — PATT domain classifier (99.9% accuracy)
-- `hero_model.pt` — HERO prediction model (in-distribution SOH R² = 0.990)
-- Verification result JSON files
+This installs into `reports/` (gitignored, local only): the Hybrid PINN, PATT, HERO and causal-model checkpoints, plus every per-experiment result artifact the verifier reads.
+
+### Where each result comes from (repository map)
+
+| Paper claim | Run this | §  |
+|---|---|---|
+| **All 27 numbers at once** | `reproduce_paper_results.py` | — |
+| Causal attribution 96.0% (live) | `VERIFY_96_ACCURACY.py` | 3.2 |
+| Data-driven baseline 93.3%, LODO 89.3%, storage-plating 37.1%→0 | `run_physics_value_experiments.py`, `train_datadriven_baseline.py` | 3.2 |
+| Counterfactual 34.6 pp; matched-pair 3/3, 27.2% | `validate_counterfactual_optimization.py`, `validate_counterfactual_ground_truth.py` | 3.2 |
+| Zero-shot table (Table 2) + CORAL/MMD/few-shot | `run_zeroshot_table_rebuild.py`, `run_domain_adaptation_baselines.py` | 3.1 |
+| Early warning 92.9% recall / 121-cyc lead; threshold sweep | `run_early_warning_reconstruction.py`, `run_threshold_sensitivity.py` | 3.1 |
+| EIS ρ=0.65; ICA/DVA degradation-mode cross-check | `run_eis_validation.py`, `run_ica_dva_validation.py` | 3.2 |
+| PATT 99.9% / 99.6% cell-level | `train_patt_classifier.py`, `train_patt_cell_split.py` | 3.3 |
+| End-to-end case studies (NASA / XJTU / TJU) | `scripts/compute_{nasa,xjtu,tju}_case_study.py` | 4 |
+| Figures 1-3, 8, 11 | `scripts/generate_*` / `scripts/plot_*` | — |
+
+The complete claim → script → artifact map is in **[REPRODUCIBILITY.md](REPRODUCIBILITY.md)**.
 
 ### Verify all paper claims
 
