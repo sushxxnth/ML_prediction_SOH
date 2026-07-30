@@ -101,3 +101,10 @@ Casual_Attribution_reports/storage_cycling_classification.png
 Casual_Attribution_reports/system_architecture.png
 Casual_Attribution_reports/training_early_dynamics.png
 Casual_Attribution_reports/training_loss_accuracy_curves.png
+
+# Paper build artifacts and local-only working files (keep .tex/pdf out of the code repo)
+Casual_Attribution_reports/*.pdf
+Casual_Attribution_reports/*.blg
+Casual_Attribution_reports/*.log
+Casual_Attribution_reports/.pagecut_backup/
+Casual_Attribution_reports/RESPONSE_TO_REVIEWERS_DRAFT.md

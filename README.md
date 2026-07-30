@@ -22,8 +22,8 @@ The framework addresses a critical limitation in current Battery Management Syst
 The framework comprises four integrated modules:
 
 ### 1. Predictive Engine: Hybrid Estimation via Retrieval Optimization (HERO)
-- A retrieval-augmented RUL prediction architecture utilizing cross-attention over a memory bank of 3,979 degradation trajectories.
-- Demonstrates zero-shot generalization to unseen battery chemistries, achieving a 55% reduction in prediction error compared to standard sequential baselines.
+- A retrieval-augmented SOH/RUL prediction architecture utilizing cross-attention over a memory bank of 3,979 degradation trajectories.
+- Attains a strong **in-distribution** held-out SOH MAE of 0.74% (R² = 0.990). Under a strict zero-shot cross-chemistry protocol we report the calibrated finding that transfer is difficult for **all** methods evaluated (HERO included), with unsupervised feature alignment (CORAL) giving the largest gains — see Table 2 of the paper.
 
 ### 2. Diagnostic Engine: Hybrid Physics-Informed Neural Network (PINN)
 - A multi-head causal attribution network bounded by electrochemical priors (Arrhenius kinetics, Tafel equations).
@@ -31,7 +31,7 @@ The framework comprises four integrated modules:
 
 ### 3. Proactive Monitoring: Early Warning Engine
 - Detects the onset of nonlinear capacity fade and knee-point acceleration.
-- Achieves an 88.9% F1 score in predictive failure detection, providing an average lead time of 99 cycles prior to end-of-life.
+- Detects 13 of 14 genuine knee-point failures (92.9% recall, 74.3% F1) on the 34 NASA cells, with an average lead time of 121 cycles prior to end-of-life.
 
 ### 4. Prescriptive Advisory: Counterfactual Optimizer
 - Simulates mechanism trajectories under hypothetical operating conditions using a differentiable physics proxy.
@@ -43,11 +43,12 @@ The framework comprises four integrated modules:
 
 | Metric | Result | Significance |
 |--------|--------|--------------|
-| **Causal Attribution Accuracy** | 96.0% (95% CI: 90.7–100.0%) | Verifiable mechanism diagnosis across 5 chemistry and condition groups. |
-| **Zero-Shot RUL (MAE)** | 44.0 cycles | 55% error reduction on unseen NCA chemistry vs. LSTM baselines. |
-| **Early Warning Lead Time** | 99 cycles | Enables proactive intervention prior to failure onset. |
-| **SOH Prediction (HERO)** | 99.0% R² | Robust trajectory forecasting across chemistries. |
-| **Domain Classification (PATT)** | 99.2% | Accurately distinguishes storage (calendar) vs. cycling aging. |
+| **Causal Attribution Accuracy** | 96.0% in-distribution (72/75); 89.3% under leave-one-dataset-out | Verifiable mechanism diagnosis across 5 chemistry and condition groups. |
+| **Physical consistency** | 0% storage-plating violations (vs 37.1% for a physics-free variant) | The physics gate makes impossible attributions impossible for *any* input. |
+| **SOH Prediction (HERO)** | 0.74% MAE, R² = 0.990 (in-distribution) | Robust trajectory forecasting within training chemistries. |
+| **Early Warning** | 92.9% recall, 121-cycle lead time | Proactive intervention prior to knee-point failure. |
+| **Domain Classification (PATT)** | 99.9% (held-out window); 99.6% (cell-level split) | Accurately distinguishes storage (calendar) vs. cycling aging. |
+| **Counterfactual Optimizer** | 34.6 pp avg reduction in dominant mechanism | Prescribes interventions that measurably cut the dominant degradation mode. |
 
 ---
 
@@ -77,15 +78,21 @@ python3 download_weights.py
 
 This installs the following into `reports/` (gitignored, local only):
 - `pinn_causal_retrained.pt` — Hybrid PINN (96.0% causal accuracy)
-- `patt_best.pt` — PATT domain classifier (99.2% accuracy)
-- `hero_model.pt` — HERO prediction model (SOH R²=99%, RUL MAE=44 cycles)
+- `patt_best.pt` — PATT domain classifier (99.9% accuracy)
+- `hero_model.pt` — HERO prediction model (in-distribution SOH R² = 0.990)
 - Verification result JSON files
 
 ### Verify all paper claims
 
 ```bash
-python3 REPRODUCE_PAPER_CLAIMS.py
+python3 reproduce_paper_results.py          # 27 checks, paper-vs-computed, PASS/FAIL
+python3 reproduce_paper_results.py --list   # list each check and its source script
 ```
+
+Each check prints the value stated in the paper, the value recomputed from this
+repository, and PASS/FAIL. Two checks run the model live (need `torch`); the rest
+read released, seeded result artifacts. See **[REPRODUCIBILITY.md](REPRODUCIBILITY.md)**
+for the full claim → script → artifact map.
 
 ### Google Colab Quick Start
 
@@ -94,24 +101,28 @@ python3 REPRODUCE_PAPER_CLAIMS.py
 %cd ML_prediction_SOH
 !pip install torch numpy pandas matplotlib scikit-learn scipy openpyxl
 !python3 download_weights.py
-!python3 REPRODUCE_PAPER_CLAIMS.py
+!python3 reproduce_paper_results.py
 ```
 
 ### Specific Verifications
 
-**1. Causal Attribution Accuracy (96.0%)**
+**1. Causal Attribution Accuracy (96.0%, runs the checkpoint)**
 ```bash
 python3 VERIFY_96_ACCURACY.py
 ```
 
-**2. Zero-Shot Prediction (HERO, 44-cycle MAE)**
+**2. Counterfactual Optimizer (34.6 pp) and matched-pair ground truth**
 ```bash
-python3 verify_hero_zeroshot.py
+python3 validate_counterfactual_optimization.py
+python3 validate_counterfactual_ground_truth.py
 ```
 
-**3. Counterfactual Ground-Truth Validation**
+**3. Early warning, EIS, ICA/DVA, zero-shot table**
 ```bash
-python3 validate_counterfactual_ground_truth.py
+python3 run_early_warning_reconstruction.py
+python3 run_eis_validation.py
+python3 run_ica_dva_validation.py
+python3 run_zeroshot_table_rebuild.py
 ```
 
 ---
@@ -149,8 +160,9 @@ ML_prediction_SOH/
 │   ├── pinn_causal/
 │   ├── hero_model/
 │   └── patt_classifier/
-├── REPRODUCE_PAPER_CLAIMS.py              # Main reproducibility script for reviewers
-└── VERIFY_96_ACCURACY.py                  # PINN evaluation script
+├── reproduce_paper_results.py             # Main reproducibility script (27 checks) for reviewers
+├── REPRODUCIBILITY.md                     # Claim → script → artifact map
+└── VERIFY_96_ACCURACY.py                  # PINN evaluation script (live 96% check)
 ```
 
 ---
@@ -186,18 +198,18 @@ The framework is trained and validated on two complementary sets of publicly ava
 ## The Models (Technical)
 
 ### HERO: Hybrid Estimation via Retrieval Optimization
-- **What**: Retrieval-augmented RUL prediction with cross-attention
-- **Performance**: 99% R² on SOH, 55% better than baselines on new chemistries
+- **What**: Retrieval-augmented SOH/RUL prediction with cross-attention
+- **Performance**: in-distribution SOH MAE 0.74% (R² = 0.990). Zero-shot cross-chemistry transfer remains hard for all methods evaluated (see Table 2); the memory bank alone does not confer chemistry adaptation.
 - **Weights**: `reports/hero_model/hero_model.pt`
 
 ### Hybrid PINN: Physics-Informed Neural Network with Expert Priors
 - **What**: 5-head network that attributes capacity loss to specific mechanisms
-- **Performance**: 96% accuracy (bootstrap 95% CI: 90.7–100.0%; expert priors add **18.7 percentage points** over boundary-aware baseline!)
+- **Performance**: 96.0% in-distribution (72/75), 89.3% under leave-one-dataset-out. The explicit priors add a modest 2.7 pp over an identical data-driven network (18.7 pp over the boundary-aware variant); their principal value is **guaranteed physical consistency** (0% vs 37.1% impossible storage-plating attributions) and auditable rules, not raw accuracy.
 - **Weights**: `reports/pinn_causal/pinn_causal_retrained.pt`
 
 ### PATT: Physics-Aware Temporal Transformer
 - **What**: Classifies whether the battery is being used or stored
-- **Performance**: 99.2% accuracy, 100% recall on cycling (never misses active use)
+- **Performance**: 99.9% held-out accuracy (99.6% ± 0.6% under a leakage-controlled cell-level split), 99.7% cycling recall
 - **Weights**: `reports/patt_classifier/patt_model.pt`
 
 ---
