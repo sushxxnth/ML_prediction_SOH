@@ -100,6 +100,8 @@ This installs into `reports/` (gitignored, local only): the Hybrid PINN, PATT, H
 | End-to-end case studies (NASA / XJTU / TJU) | `scripts/compute_{nasa,xjtu,tju}_case_study.py` | 4 |
 | Figures 1-3, 8, 11 | `scripts/generate_*` / `scripts/plot_*` | — |
 
+`reproduce_paper_results.py` needs **no dataset download** — it reads the released artifacts and runs the two model checks live. The individual `run_*.py` / `train_*.py` / `validate_*` scripts in the table above instead **regenerate** those artifacts from the raw battery datasets (~2.7 GB, see [Training Your Own Models](#training-your-own-models)), so run them only if you want to rebuild an artifact end-to-end.
+
 The complete claim → script → artifact map is in **[REPRODUCIBILITY.md](REPRODUCIBILITY.md)**.
 
 ### Verify all paper claims
