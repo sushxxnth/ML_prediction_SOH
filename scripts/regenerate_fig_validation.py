@@ -3,7 +3,7 @@ Regenerate pinn_validation_92.png with correct numbers:
 - Overall: 96.0% (72/75) not 92.0% (69/75)
 - Per-dataset: NASA 14/15 (93%), TJU/Pan 15/15 (100%), Nature 15/15 (100%),
                Randomized 14/15 (93%), HUST 14/15 (93%)
-- Per-mechanism recall: SEI 93%, Plating 100%, AM Loss 93%, Corrosion 100%
+- Per-mechanism recall: SEI 100% (28/28), Plating 100% (13/13), AM Loss 90.6% (29/32), Corrosion 100% (2/2)
 - Architecture comparison: Pure PINN 60%, Boundary-Aware 77.3%, Hybrid 96%
 """
 
@@ -45,7 +45,7 @@ ax_a.set_yticklabels(datasets, fontsize=14)
 labels = ax_a.get_yticklabels()
 labels[0].set_fontweight('bold')
 
-ax_a.set_xlim(0, 115)
+ax_a.set_xlim(0, 150)
 ax_a.set_xlabel('Accuracy (%)', fontsize=14)
 ax_a.spines['top'].set_visible(False)
 ax_a.spines['right'].set_visible(False)
@@ -117,17 +117,11 @@ ax_c.text(-0.08, 1.08, 'c', fontsize=20, fontweight='bold', transform=ax_c.trans
 ax_c.set_title('Mechanism-Specific Recall', fontsize=17, fontweight='bold', pad=10)
 
 mechanisms = ['SEI\nGrowth', 'Lithium\nPlating', 'Active Material\nLoss', 'Corrosion']
-# SEI: 25/28 = 89% wait... let me recalculate
-# If 3 AM cases are misclassified as SEI:
-# SEI recall = 28/28 = 100% (all true SEI correctly predicted)
-# Plating recall = 13/13 = 100%
-# AM Loss recall = 29/32 = 90.6% (3 misclassified)
-# Corrosion recall = 2/2 = 100%
-# But the paper text says "93% for NASA, TJU 100%, Nature 100%, Randomized 93%, HUST 93%"
-# And per-mechanism from table: SEI 93%, Plating 100%, AM 93%, Corrosion 100%
-# From Table tab:pinn_comparison: Hybrid PINN: 93% SEI, 100% Plating, 93% AM, 100% Corrosion
-# So recall per mechanism: SEI=93%, Plating=100%, AM=93%, Corrosion=100%
-recalls = [93, 100, 93, 100]
+# Per-mechanism recall of the released checkpoint (pinn_causal_retrained.pt),
+# verified with VERIFY_96_ACCURACY.py: the 3 errors are all true-AM predicted-SEI, so
+# SEI 28/28 = 100%, Plating 13/13 = 100%, AM 29/32 = 90.6%, Corrosion 2/2 = 100%.
+# These match the confusion matrix in panel B.
+recalls = [100, 100, 90.6, 100]
 
 bar_colors = ['#4DBBD5', '#00A087', '#4DBBD5', '#00A087']
 bars = ax_c.bar(mechanisms, recalls, color=bar_colors, edgecolor='white', width=0.6)

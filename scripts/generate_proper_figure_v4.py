@@ -49,7 +49,7 @@ def generate_figure():
     print(f"  Sequential cycle range: 1 to {len(real_soh)}")
 
     fig = plt.figure(figsize=(8.5, 11.0), facecolor='white')
-    gs = gridspec.GridSpec(3, 2, height_ratios=[1, 1, 0.85], hspace=0.35, wspace=0.25)
+    gs = gridspec.GridSpec(3, 2, height_ratios=[1, 1, 0.85], hspace=0.35, wspace=0.40)
 
     fig.text(0.5, 0.975, 'End-to-End Demonstration: NASA Battery B0005 (Cold-Weather Lithium Plating Scenario)',
              ha='center', fontsize=13, weight='bold', color='#1A1A1A')
@@ -65,7 +65,7 @@ def generate_figure():
     ax_a.set_title('(a) Input: NASA B0005 (4°C, 1.5C Charging)', loc='left', pad=12)
     ax_a.set_xlabel('Cycle Number', fontweight='bold')
     ax_a.set_ylabel('State of Health (%)', color=N_BLUE, fontweight='bold')
-    ax_a_twin.set_ylabel('Temperature (°C)', color=N_RED, fontweight='bold')
+    ax_a_twin.set_ylabel('Temperature (°C)', color=N_RED, fontweight='bold', labelpad=12)
     ax_a.set_ylim(65, 105)
     ax_a_twin.set_ylim(0, 12)
     ax_a.grid(True, zorder=0)
@@ -137,7 +137,7 @@ def generate_figure():
 
     # ── (d) Counterfactual Optimization ──
     ax_d = fig.add_subplot(gs[1, 1])
-    scenarios = ['Current\nCondition', 'Scenario A:\nReduce I \u2192 1.5A', 'Scenario B:\nWarm \u2192 15\u00b0C', 'Scenario C:\nBoth (Optimal)']
+    scenarios = ['Current\nCondition', 'Scenario A:\n3A \u2192 1.5A', 'Scenario B:\n4\u00b0C \u2192 15\u00b0C', 'Scenario C:\nBoth (Optimal)']
     results = [70, 10, 5, 0]
     colors_d = [N_RED, '#FFA000', '#1976D2', N_GREEN]
     bars_d = ax_d.bar(scenarios, results, color=colors_d, alpha=0.9, width=0.6, edgecolor='white', lw=1, zorder=3)
@@ -176,7 +176,7 @@ def generate_figure():
 
     # PATT Classification — VERIFIED: paper line 782
     draw_box(0.01, 0.02, 0.31, 0.9, 'PATT Classification', 'MODEL DIAGNOSTICS',
-             ['Mode: Cycling', 'Confidence: 99.6%', 'Arrhenius \u03b1 = 0.50', 'Diffusion \u03b2 = 0.29'],
+             ['Mode: Cycling', 'Confidence: 99.2%', 'Arrhenius \u03b1 = 0.50', 'Diffusion \u03b2 = 0.29'],
              'Data: Stanford + XJTU (86 cells)', N_BLUE, B_BLUE)
 
     # Tactical — VERIFIED: paper line 774

@@ -187,7 +187,7 @@ def generate_figure():
 
     # PATT Classification — cycling mode
     draw_box(0.01, 0.02, 0.31, 0.9, 'PATT Classification', 'MODEL DIAGNOSTICS',
-             ['Mode: Cycling', 'Confidence: 99.8%', 'Arrhenius \u03b1 = 0.50', 'Diffusion \u03b2 = 0.29'],
+             ['Mode: Cycling', 'Confidence: 99.2%', 'Arrhenius \u03b1 = 0.50', 'Diffusion \u03b2 = 0.29'],
              'Data: Stanford + XJTU (86 cells)', N_BLUE, B_BLUE)
 
     # Tactical — for high C-rate scenario
